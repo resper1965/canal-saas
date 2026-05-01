@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-05-01T11:40:00Z",
+  "project_root": "/home/resper/ness-site2026/canal/admin",
+  "languages": [
+    { "name": "TypeScript", "extensions": [".ts", ".tsx"], "file_count": 78 },
+    { "name": "CSS", "extensions": [".css"], "file_count": 4 },
+    { "name": "HTML", "extensions": [".html"], "file_count": 1 }
+  ],
+  "primary_language": "TypeScript",
+  "frameworks": [
+    { "name": "React", "version": "19.1.0", "source": "package.json" },
+    { "name": "React Router", "version": "7.5.1", "source": "package.json" },
+    { "name": "Vite", "version": "6.3.3", "source": "package.json" },
+    { "name": "Tailwind CSS", "version": "4.2.4", "source": "package.json" },
+    { "name": "Better Auth", "version": "1.6.5", "source": "package.json" },
+    { "name": "@react-pdf/renderer", "version": "4.5.1", "source": "package.json" },
+    { "name": "Playwright", "version": "1.59.1", "source": "package.json" },
+    { "name": "Vitest", "version": "4.1.4", "source": "package.json" }
+  ],
+  "package_manager": "npm",
+  "entry_points": [
+    { "path": "src/main.tsx", "type": "app_entry" },
+    { "path": "src/App.tsx", "type": "router_root" },
+    { "path": "index.html", "type": "spa_shell" }
+  ],
+  "config_files": [
+    "vite.config.ts",
+    "tsconfig.json",
+    "playwright.config.ts",
+    "public/_headers"
+  ],
+  "ci_cd": [
+    ".github/workflows/playwright.yml"
+  ],
+  "database_hints": [],
+  "test_framework": "Vitest + Playwright",
+  "test_file_count": 11,
+  "modules": [
+    "auth",
+    "collections",
+    "dashboard",
+    "content",
+    "marketing",
+    "communications",
+    "ai",
+    "compliance",
+    "saas",
+    "media",
+    "design-system",
+    "emergency"
+  ],
+  "total_files": 97
+}
