@@ -1,0 +1,126 @@
+/* ── Tab Bar ──────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.tab-btn {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  color: var(--text);
+}
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Plan Cards ──────────────────────────────── */
+.plan-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.plan-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  transition: all 0.2s;
+  position: relative;
+}
+.plan-card.current {
+  border-color: var(--accent);
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+.plan-card-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+.plan-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.plan-card .plan-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.plan-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.plan-features li {
+  font-size: 13px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.plan-features li svg {
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+/* ── Role Badges ─────────────────────────────── */
+.badge-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.badge-role-owner { background: rgba(123,208,255,0.12); color: var(--accent); }
+.badge-role-admin { background: rgba(123,208,255,0.12); color: var(--accent); }
+.badge-role-editor { background: rgba(249,115,22,0.12); color: var(--orange); }
+.badge-role-member,
+.badge-role-user { background: rgba(0,0,0,0.06); color: var(--text-muted); }
+
+/* ── Button Secondary ────────────────────────── */
+.btn-secondary {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid rgba(123,208,255,0.15);
+}
+.btn-secondary:hover {
+  background: rgba(123,208,255,0.18);
+  border-color: rgba(123,208,255,0.3);
+}
+
+/* ── Role Select ─────────────────────────────── */
+.role-select {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+}
+.role-select:focus {
+  border-color: var(--accent);
+}
+.role-select option {
+  background: var(--surface-2);
+}

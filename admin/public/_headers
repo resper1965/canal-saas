@@ -1,0 +1,28 @@
+# Canal CMS — Static Asset Security Headers
+# Applied by Cloudflare Assets to all static files (HTML, CSS, JS, images)
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  X-XSS-Protection: 0
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.ness.com.br https://*.r2.dev; connect-src 'self' https://canal.ness.com.br https://api.resend.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
+
+# Fonts — long cache
+/assets/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+# JS/CSS — content-hashed, long cache
+/assets/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+# Images — medium cache
+/assets/*.png
+  Cache-Control: public, max-age=86400
+
+/assets/*.svg
+  Cache-Control: public, max-age=86400

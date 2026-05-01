@@ -1,0 +1,39 @@
+# NESS Canal CMS - LLM & Macro Agent Context
+
+You are a Macro AI Agent (or an LLM logic engine) attempting to integrate with the NESS Pipeline "Canal CMS".
+This system is an enterprise-grade Serverless framework running on Cloudflare Workers and Cloudflare D1 (SQLite).
+
+## Core Architecture
+- **Environment**: Cloudflare Workers
+- **Database**: D1 (Relational SQLite)
+- **Primary Auth Tool**: Better Auth v1 (Supports AgentAuth & Delegated MCP Models)
+- **Primary Domain (Backend)**: `https://canal.ness.com.br`
+
+## Model Context Protocol (MCP) Interface
+The platform supports MCP natively. You do NOT need to write scraping scripts; you must connect using JSON-RPC through the designated MCP endpoint.
+
+- **Endpoint**: `https://canal.ness.com.br/api/mcp/`
+- **Method**: HTTP POST
+- **Payload**: Standard MCP JSON-RPC 2.0 (e.g. `{"jsonrpc": "2.0", "method": "tools/list", "id": 1}`)
+
+## Authentication (Crucial)
+You must pass an authentication header in every execution request. The Backend middleware (`requireAdminOrKey`) relies on strict authorization. You have two options:
+1. **Agent Session Header (Recommended)**: 
+   `Authorization: Bearer <your_assigned_agent_token>`
+2. **Setup Key Bypass (Admin / Bootstrapping)**:
+   `x-setup-key:  <root_admin_secret>`
+
+## Expected Tools & Resources
+Once authenticated, sending a `tools/list` request will yield tools to manipulate and read the underlying database architecture:
+- `entries`: Core CRM and Article content (B2B use cases, Portfolio, Documentation).
+- `forms`: Internal Whistleblower and DSAR (LGPD) tickets.
+- `chats`: Historical SOC-Triage and user engagement logs.
+- `collections`: Metadata driving the Headless UI logic.
+
+## Behavior Directives
+- **Zero-Trust**: Do not attempt SQL injections. The CMS leverages strict ORM bindings (Kysely) beneath the surface.
+- **Agentic Actions**: If you are requested to "fetch latest cases", use the MCP tool for `entries`.
+- **System Webhooks**: The system has a native webhook (`/api/webhooks/omnichannel`) for async event messaging, but direct data reading must always flow through `/api/mcp/`.
+
+---
+END OF CONTEXT

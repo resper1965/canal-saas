@@ -1,0 +1,101 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "canal",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-04-14",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"routes": [
+		{
+			"pattern": "canal.ness.com.br",
+			"custom_domain": true
+		},
+		{
+			"pattern": "www.canal.ness.com.br",
+			"custom_domain": true
+		}
+	],
+	"assets": {
+		"directory": "./admin/dist",
+		"binding": "ASSETS",
+		"not_found_handling": "single-page-application"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "canal-db",
+			"database_id": "bd79ce1a-6fd0-49ef-8d9f-40ea53717e0e"
+		}
+	],
+	"vars": {
+		"BETTER_AUTH_URL": "https://canal.ness.com.br"
+	},
+	"alias": {
+		"better-auth/adapters/kysely": "./node_modules/better-auth/dist/db/adapter-kysely.mjs"
+	},
+	"vectorize": [
+		{
+			"binding": "VECTORIZE",
+			"index_name": "canal-vectors"
+		}
+	],
+	"ai": {
+		"binding": "AI"
+	},
+	"r2_buckets": [
+		{
+			"binding": "MEDIA",
+			"bucket_name": "canal-media"
+		}
+	],
+	"queues": {
+		"producers": [
+			{
+				"binding": "QUEUE",
+				"queue": "canal-tasks-queue"
+			}
+		],
+		"consumers": [
+			{
+				"queue": "canal-tasks-queue",
+				"max_batch_size": 10,
+				"max_retries": 3,
+				"max_batch_timeout": 5
+			}
+		]
+	},
+	"triggers": {
+		"crons": [
+			"0 0 * * SUN"
+		]
+	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "AGENT_DO",
+				"class_name": "GabiAgent"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_classes": [
+				"GabiAgent"
+			]
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "CANAL_KV",
+			"id": "b28950f237884a4aa47d103723dd09bf"
+		}
+	],
+	"analytics_engine_datasets": [
+		{
+			"binding": "ANALYTICS",
+			"dataset": "canal_metrics"
+		}
+	]
+}
