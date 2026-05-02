@@ -4,7 +4,6 @@ import { createBrowserRouter, RouterProvider, useParams, useRouteError } from "r
 
 const LoginPage = React.lazy(() => import("./routes/login"));
 const DashboardLayout = React.lazy(() => import("./routes/dashboard"));
-const CollectionPage = React.lazy(() => import("./routes/collection"));
 const MediaPage = React.lazy(() => import("./routes/media"));
 const SaasSettingsPage = React.lazy(() => import("./routes/saas"));
 const AccountSettingsPage = React.lazy(() => import("./routes/account"));
@@ -17,13 +16,12 @@ const SaasBillingPage = React.lazy(() => import("./routes/saas-billing"));
 const ChatsHistoryPage = React.lazy(() => import("./routes/chats"));
 const ApplicantsPage = React.lazy(() => import("./routes/applicants"));
 const SocialCalendarPage = React.lazy(() => import("./routes/social-calendar"));
-const PublicationsPage = React.lazy(() => import("./routes/publications"));
 const OnboardingWizard = React.lazy(() => import("./routes/onboarding-wizard"));
 const HelpPage = React.lazy(() => import("./routes/help"));
-// Unified Hub Pages
 const BrandHubPage = React.lazy(() => import("./routes/brand"));
 const OutboxPage = React.lazy(() => import("./routes/outbox"));
 const IntelligencePage = React.lazy(() => import("./routes/intelligence"));
+const ContentRoute = React.lazy(() => import("./routes/content"));
 function GlobalErrorBoundary() {
   const error = useRouteError() as Error;
   
@@ -46,9 +44,7 @@ function GlobalErrorBoundary() {
   );
 }
 
-function CollectionRoute({ slug }: { slug: string }) {
-  return <CollectionPage slug={slug} />;
-}
+const CollectionPage = React.lazy(() => import("./routes/collection"));
 
 function DynamicCrudRoute() {
   const { slug } = useParams();
@@ -64,12 +60,15 @@ const router = createBrowserRouter([
     errorElement: <GlobalErrorBoundary />,
     children: [
       { index: true, element: <DashboardHome /> },
-      { path: "insights", element: <CollectionRoute slug="insights" /> },
-      { path: "publications", element: <PublicationsPage /> },
-      { path: "cases", element: <CollectionRoute slug="cases" /> },
-      { path: "jobs", element: <CollectionRoute slug="jobs" /> },
+      // Unified content route
+      { path: "content/:slug", element: <ContentRoute /> },
+      // Legacy content aliases
+      { path: "insights", element: <ContentRoute /> },
+      { path: "publications", element: <ContentRoute /> },
+      { path: "cases", element: <ContentRoute /> },
+      { path: "jobs", element: <ContentRoute /> },
+      { path: "pages", element: <ContentRoute /> },
       { path: "applicants", element: <ApplicantsPage /> },
-      { path: "pages", element: <CollectionRoute slug="pages" /> },
       // Unified Hubs
       { path: "brand", element: <BrandHubPage /> },
       { path: "outbox", element: <OutboxPage /> },
