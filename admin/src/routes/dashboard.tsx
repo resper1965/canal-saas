@@ -75,7 +75,7 @@ export default function DashboardLayout() {
     <div className="flex h-screen w-full bg-background p-3 md:p-4 font-sans text-foreground overflow-hidden gap-4 selection:bg-brand-primary/30 selection:text-white">
 
       {/* ── Sidebar ── */}
-      <aside className={`shrink-0 flex flex-col bg-card border border-border rounded-2xl transition-[width] duration-300 ease-in-out overflow-hidden relative group/sidebar ${isMinimized ? 'w-[80px]' : 'w-[260px]'}`}>
+      <aside role="complementary" aria-label="Menu de navegação" className={`shrink-0 flex flex-col bg-card border border-border rounded-2xl transition-[width] duration-300 ease-in-out overflow-hidden relative group/sidebar ${isMinimized ? 'w-[80px]' : 'w-[260px]'}`}>
         
         {/* Logo */}
         <div className="flex items-center h-16 px-6 shrink-0 justify-between">
@@ -105,7 +105,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-6 py-6 scrollbar-hide">
+        <nav aria-label="Navegação principal" className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-6 py-6 scrollbar-hide">
           {(isSysAdminMode ? ADMIN_NAV : NAV).map((group) => {
             if (group.adminOnly && !isSuperAdmin) return null;
             if (group.ownerOnly && !isSuperAdmin && myRole !== "owner") return null;
@@ -157,6 +157,7 @@ export default function DashboardLayout() {
               onClick={handleSignOut}
               className="w-10 h-10 flex items-center justify-center rounded-lg text-zinc-400 hover:bg-red-500/10 hover:text-red-500 transition-colors"
               title="Encerrar Sessão"
+              aria-label="Encerrar Sessão"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
@@ -167,7 +168,7 @@ export default function DashboardLayout() {
       </aside>
 
       {/* ── Main Canvas ── */}
-      <main className="flex-1 flex flex-col bg-background border border-border rounded-2xl overflow-hidden relative transition-all duration-300">
+      <main role="main" aria-label="Conteúdo principal" className="flex-1 flex flex-col bg-background border border-border rounded-2xl overflow-hidden relative transition-all duration-300">
         
         {/* Header toolbar */}
         <header className="shrink-0 h-16 flex items-center justify-between px-6 md:px-8 border-b border-border bg-card/50  sticky top-0 z-10">
@@ -178,6 +179,7 @@ export default function DashboardLayout() {
             onClick={toggleTheme}
             className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-zinc-400 hover:text-white hover:bg-muted/50 transition-colors"
             title={theme === 'light' ? 'Tema Escuro' : 'Tema Claro'}
+            aria-label={theme === 'light' ? 'Alternar para tema escuro' : 'Alternar para tema claro'}
           >
              {theme === 'light' ? (
                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
