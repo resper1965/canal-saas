@@ -1,3 +1,4 @@
+import { Spinner } from "../components/ui/Spinner";
 import { useState, useEffect } from "react";
 
 /* ══════════════════════════════════════════════════════════════
@@ -149,7 +150,7 @@ export default function DashboardHome() {
     return (
       <div className="flex justify-center py-48 animate-pulse text-center">
         <div className="space-y-4">
-           <div className="w-8 h-8 border-2 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin mx-auto" />
+           <Spinner />
            <p className="text-sm font-medium text-zinc-500">Carregando métricas...</p>
         </div>
       </div>

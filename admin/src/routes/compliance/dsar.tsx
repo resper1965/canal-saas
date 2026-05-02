@@ -1,3 +1,4 @@
+import { PageSpinner } from "../../components/ui/Spinner";
 import { useState, useEffect } from "react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../components/ui/Table";
 import { Link } from "react-router";
@@ -33,7 +34,7 @@ export default function DSARDashboard() {
       </div>
 
       {loading ? (
-        <div className="p-12 flex justify-center"><div className="loader-inline" /></div>
+        <PageSpinner />
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-20 text-center bg-card rounded-[24px] border border-border/50 shadow-sm mt-4">
           <h3 className="text-xl font-bold text-foreground font-mono">Nenhuma Requisição</h3>

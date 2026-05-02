@@ -1,3 +1,4 @@
+import { PageSpinner } from "../components/ui/Spinner";
 import React, { useEffect, useState } from "react";
 import { authClient } from "../lib/auth-client";
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from "../components/ui/Card";
@@ -134,7 +135,7 @@ export default function OrganizationsPage() {
         </CardHeader>
         
         {loading ? (
-          <div className="flex justify-center p-20 animate-pulse"><div className="loader-inline" /></div>
+          <PageSpinner />
         ) : (
            <div className="w-full overflow-x-auto min-w-0 max-w-full custom-scrollbar">
             <table className="w-full text-sm">

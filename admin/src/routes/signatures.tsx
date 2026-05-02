@@ -1,25 +1,9 @@
 import { useState, useEffect } from "react";
 import { SignaturePreview } from "../components/signatures/SignaturePreview";
+import { useToast } from "../components/ui/Toast";
+import { PageSpinner } from "../components/ui/Spinner";
 
-function Toast({ message, type, onClose }: { message: string; type: "success" | "error", onClose?: () => void }) {
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg animate-in slide-in-from-bottom-4 fade-in duration-300 text-sm text-white ${
-      type === "success" ? "bg-emerald-500" : "bg-red-500"
-    }`}>
-      {type === "success" ? (
-         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
-      ) : (
-         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      )}
-      {message}
-      {onClose && (
-        <button onClick={onClose} className="ml-2 hover:opacity-70">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      )}
-    </div>
-  );
-}
+
 
 const DEPARTMENTS = [
   "Diretoria", "Engenharia", "Comercial", "Operações",
@@ -55,7 +39,7 @@ export default function SignaturesPage() {
 
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function init() {
@@ -67,18 +51,14 @@ export default function SignaturesPage() {
     init();
   }, []);
 
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2600);
-    return () => clearTimeout(t);
-  }, [toast]);
+
 
   const copyHTML = () => {
     const el = document.getElementById("sig-preview");
     if (!el) return;
     navigator.clipboard.writeText(el.innerHTML).then(() => {
       setCopied(true);
-      setToast({ message: "HTML copiado!", type: "success" });
+      toast("HTML copiado!");
       setTimeout(() => setCopied(false), 2000);
     });
   };
@@ -93,19 +73,19 @@ export default function SignaturesPage() {
     window.location.href = `/api/admin/brand/signature/me?${qs}`;
     setTimeout(() => {
       setDownloading(false);
-      setToast({ message: "Download gerado.", type: "success" });
+      toast("Download gerado.");
     }, 1500);
   };
 
   if (loading) {
-    return <div className="flex justify-center p-20"><div className="w-8 h-8 rounded-full border-2 border-border border-t-brand-primary animate-spin" /></div>;
+    return <PageSpinner />;
   }
 
   const BRANDS = brandData?.complete_book ? Object.keys(brandData.complete_book) : ["ness"];
 
   return (
     <div className="max-w-7xl w-full px-6 py-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col mx-auto">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
 
       {/* Tabs */}
       <div className="flex gap-1 bg-card border border-border rounded-lg p-1 h-10 w-fit shrink-0">
@@ -248,14 +228,14 @@ export default function SignaturesPage() {
                  <div className="space-y-2">
                     <span className="text-xs font-semibold text-zinc-500 uppercase">Cores</span>
                     <div className="grid grid-cols-2 gap-3">
-                       <button onClick={() => { navigator.clipboard.writeText(brand.colors.primary); setToast({ message: "Cor copiada", type: "success" }); }} className="bg-background border border-border rounded-lg p-3 flex flex-col gap-2 hover:border-border transition-colors text-left">
+                       <button onClick={() => { navigator.clipboard.writeText(brand.colors.primary); toast("Cor copiada"); }} className="bg-background border border-border rounded-lg p-3 flex flex-col gap-2 hover:border-border transition-colors text-left">
                           <div className="h-8 w-full rounded" style={{ backgroundColor: brand.colors.primary }} />
                           <div className="flex justify-between items-center">
                              <span className="text-xs text-zinc-500">Primary</span>
                              <span className="text-xs font-mono text-zinc-400">{brand.colors.primary}</span>
                           </div>
                        </button>
-                       <button onClick={() => { navigator.clipboard.writeText(brand.colors.bg); setToast({ message: "Cor copiada", type: "success" }); }} className="bg-background border border-border rounded-lg p-3 flex flex-col gap-2 hover:border-border transition-colors text-left">
+                       <button onClick={() => { navigator.clipboard.writeText(brand.colors.bg); toast("Cor copiada"); }} className="bg-background border border-border rounded-lg p-3 flex flex-col gap-2 hover:border-border transition-colors text-left">
                           <div className="h-8 w-full rounded border border-border" style={{ backgroundColor: brand.colors.bg }} />
                           <div className="flex justify-between items-center">
                              <span className="text-xs text-zinc-500">Surface</span>

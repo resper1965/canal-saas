@@ -1,4 +1,5 @@
 import * as React from "react";
+import { ToastProvider } from "./components/ui/Toast";
 import { createBrowserRouter, RouterProvider, useParams, useRouteError } from "react-router";
 
 const LoginPage = React.lazy(() => import("./routes/login"));
@@ -99,8 +100,10 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    <React.Suspense fallback={<div className="loader" />}>
-      <RouterProvider router={router} />
-    </React.Suspense>
+    <ToastProvider>
+      <React.Suspense fallback={<div className="loader" />}>
+        <RouterProvider router={router} />
+      </React.Suspense>
+    </ToastProvider>
   );
 }
