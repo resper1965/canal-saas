@@ -10,6 +10,7 @@ import { z } from 'zod'
 import { collections, getCollection, getRequiredFields } from '../collections'
 import { createAuth } from '../auth'
 import { upsertVector, deleteVector } from '../vectorize-sync'
+import { sanitizeEntryData } from '../security'
 import type { EntryRow } from '../types'
 
 type Env = {
@@ -303,6 +304,16 @@ entries.post('/collections/:slug/entries', async (c) => {
   // Security P0: Protect IDOR
   const tenantId = session.session.activeOrganizationId || null
 
+  // Plan enforcement: check entry limits
+  if (tenantId) {
+    const { getUsage, canCreateEntry } = await import('../plans')
+    const usage = await getUsage(c.env.DB, tenantId)
+    const check = canCreateEntry(usage)
+    if (!check.allowed) {
+      return c.json({ error: check.reason, code: 'PLAN_LIMIT' }, 403)
+    }
+  }
+
   // Buscar collection_id
   const colRow = await c.env.DB.prepare(
     'SELECT id FROM collections WHERE slug = ? LIMIT 1'
@@ -316,7 +327,8 @@ entries.post('/collections/:slug/entries', async (c) => {
   const slug = col.hasSlug ? ((body.slug as string) || generateSlug(body.title as string || id)) : null
 
   // Separar campos de sistema dos dados
-  const { locale: _l, status: _s, slug: _sl, ...data } = body
+  const { locale: _l, status: _s, slug: _sl, ...rawData } = body
+  const data = sanitizeEntryData(rawData as Record<string, unknown>)
 
   const now = new Date().toISOString()
   const publishedAt = status === 'published' ? now : null
@@ -424,7 +436,8 @@ entries.put('/collections/:slug/entries/:id', async (c) => {
 
   // Merge data existing + new
   const existingData = safeParseJSON(ex.data)
-  const { locale: _l, status: _s, slug: _sl, ...newData } = body
+  const { locale: _l, status: _s, slug: _sl, ...rawNewData } = body
+  const newData = sanitizeEntryData(rawNewData as Record<string, unknown>)
   const mergedData = { ...existingData, ...newData }
 
   const now = new Date().toISOString()

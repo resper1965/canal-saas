@@ -25,6 +25,8 @@ const ChatsHistoryPage = React.lazy(() => import("./routes/chats"));
 const ApplicantsPage = React.lazy(() => import("./routes/applicants"));
 const SocialCalendarPage = React.lazy(() => import("./routes/social-calendar"));
 const PublicationsPage = React.lazy(() => import("./routes/publications"));
+const OnboardingWizard = React.lazy(() => import("./routes/onboarding-wizard"));
+const HelpPage = React.lazy(() => import("./routes/help"));
 function GlobalErrorBoundary() {
   const error = useRouteError() as Error;
   
@@ -58,6 +60,7 @@ function DynamicCrudRoute() {
 
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage />, errorElement: <GlobalErrorBoundary /> },
+  { path: "/onboarding", element: <OnboardingWizard />, errorElement: <GlobalErrorBoundary /> },
   {
     path: "/",
     element: <DashboardLayout />,
@@ -89,6 +92,7 @@ const router = createBrowserRouter([
       { path: "emergency", element: <EmergencyPage /> },
       { path: "saas-billing", element: <SaasBillingPage /> },
       { path: "crud/:slug", element: <DynamicCrudRoute /> },
+      { path: "help", element: <HelpPage /> },
     ],
   },
 ]);

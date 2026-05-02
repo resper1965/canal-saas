@@ -9,9 +9,9 @@ interface StatusDotProps {
 
 const STATUS_COLORS: Record<DotStatus, string> = {
   ok: "bg-emerald-500",
-  warning: "bg-amber-500 animate-pulse",
+  warning: "bg-amber-500",
   error: "bg-red-500",
-  loading: "bg-muted-foreground/40 animate-pulse",
+  loading: "bg-zinc-500 animate-pulse",
 };
 
 const STATUS_LABELS: Record<DotStatus, string> = {

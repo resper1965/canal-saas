@@ -58,7 +58,7 @@ export function OrgSwitcher({ userEmail, isSuperAdmin }: { userEmail: string; is
   return (
     <div className="org-switcher" ref={ref}>
       <button
-        className={`w-full flex h-11 items-center justify-between gap-3 px-4 rounded-xl border transition-all duration-300 group ${open ? 'bg-white/10 border-white/20 shadow-xl' : 'bg-black/20 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
+        className={`w-full flex h-11 items-center justify-between gap-3 px-4 rounded-xl border transition-all duration-300 group ${open ? 'bg-muted border-border shadow-xl' : 'bg-card border-border hover:bg-muted/50 hover:border-border'}`}
         onClick={() => setOpen(!open)}
       >
         <div className="flex flex-col items-start overflow-hidden">
@@ -71,11 +71,11 @@ export function OrgSwitcher({ userEmail, isSuperAdmin }: { userEmail: string; is
       </button>
 
       {open && (
-        <div className="absolute top-[calc(100%+12px)] left-0 right-0 z-100 rounded-2xl border border-white/10 bg-black/80 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] overflow-hidden radial-gradient-glass animate-in fade-in slide-in-from-top-2 duration-200 p-1.5 space-y-1">
+        <div className="absolute top-[calc(100%+8px)] left-0 right-0 z-100 rounded-xl border border-border bg-card shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 p-1.5 space-y-1">
           {orgs?.map((o: any) => (
             <button
               key={o.id}
-              className={`w-full flex h-11 items-center justify-between px-4 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${activeOrg?.id === o.id ? "bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shadow-lg" : "text-zinc-400 hover:bg-white/5 hover:text-white"}`}
+              className={`w-full flex h-11 items-center justify-between px-4 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${activeOrg?.id === o.id ? "bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shadow-lg" : "text-zinc-400 hover:bg-muted/50 hover:text-white"}`}
               onClick={() => handleSwitch(o.id)}
             >
               <span className="truncate">{o.name}</span>
@@ -86,22 +86,22 @@ export function OrgSwitcher({ userEmail, isSuperAdmin }: { userEmail: string; is
               )}
             </button>
           ))}
-          <div className="h-px bg-white/10 mx-2" />
+          <div className="h-px bg-muted mx-2" />
 
           {isSuperAdmin && (
             creating ? (
-              <div className="p-3 space-y-3 bg-white/2 rounded-xl border border-white/5 mx-1">
+              <div className="p-3 space-y-3 bg-muted/20 rounded-xl border border-border mx-1">
                 <input
                   autoFocus
                   placeholder="Nome da organização"
                   value={newName}
-                  className="w-full h-11 px-4 bg-black/40 border border-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white outline-none focus:border-brand-primary/50 transition-all"
+                  className="w-full h-11 px-4 bg-card border border-border rounded-xl text-[11px] font-bold uppercase tracking-widest text-white outline-none focus:border-brand-primary/50 transition-all"
                   aria-label="Nome da organização"
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                 />
                 <div className="flex gap-2">
-                  <button className="flex-1 h-11 rounded-xl text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:bg-white/5 transition-all" onClick={() => { setCreating(false); setNewName(""); }}>
+                  <button className="flex-1 h-11 rounded-xl text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:bg-muted/50 transition-all" onClick={() => { setCreating(false); setNewName(""); }}>
                     Cancelar
                   </button>
                   <button className="flex-1 h-11 rounded-xl bg-brand-primary text-white text-[10px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 transition-all disabled:opacity-50" onClick={handleCreate} disabled={loading || !newName.trim()}>

@@ -13,20 +13,20 @@ export function StatCard({ label, value, icon, change, changeColor = "text-emera
   const formatted = typeof value === "number" ? value.toLocaleString("pt-BR") : value;
 
   return (
-    <div className={`rounded-2xl glass-panel py-4 px-5 flex flex-col gap-2 transition-all duration-300 hover:scale-[1.02] cursor-default group ${className}`}>
+    <div className={`rounded-xl bg-card border border-border shadow-sm py-5 px-6 flex flex-col gap-3 transition-colors duration-200 hover:border-border/80 cursor-default group ${className}`}>
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{label}</span>
+        <span className="text-sm font-medium text-zinc-400">{label}</span>
         {icon && (
-          <div className="w-7 h-7 rounded-lg bg-muted/40 flex items-center justify-center text-muted-foreground/60 group-hover:text-foreground group-hover:bg-muted/60 transition-all" aria-hidden="true">
+          <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center text-muted-foreground group-hover:text-foreground group-hover:bg-accent transition-colors" aria-hidden="true">
             {icon}
           </div>
         )}
       </div>
-      <div className="text-3xl font-extrabold leading-none text-white tracking-tight drop-shadow-sm">
+      <div className="text-3xl font-bold tracking-tight text-white">
         {formatted}
       </div>
       {change && (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs font-medium mt-1">
           <span className={changeColor}>{change}</span>
         </p>
       )}

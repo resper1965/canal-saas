@@ -105,8 +105,7 @@ export default function CompliancePage() {
     <div className="max-w-[1750px] w-full px-10 md:px-12 py-10 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 overflow-hidden flex flex-col">
       
       {/* ── System Segmented Controls ── */}
-      <div className="flex p-1.5 bg-black/40 backdrop-blur-3xl rounded-2xl border border-white/5 radial-gradient-glass w-fit h-14 shrink-0 shadow-2xl relative overflow-hidden group">
-        <div className="absolute -inset-10 bg-brand-primary/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+      <div className="flex p-1 bg-card border border-border rounded-md w-fit h-10 shrink-0">
         {[
           { id: 'dsar', label: 'Gestão DSAR', icon: <><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></> },
           { id: 'whistleblower', label: 'Inteligência de Caso', icon: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></> },
@@ -115,11 +114,11 @@ export default function CompliancePage() {
           <button
             key={item.id}
             onClick={() => setTab(item.id as any)}
-            className={`flex items-center gap-4 px-8 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all italic z-10 ${
-              tab === item.id ? 'bg-brand-primary text-white shadow-2xl scale-[1.05]' : 'text-zinc-600 hover:text-zinc-300'
+            className={`flex items-center gap-2 px-4 rounded text-sm font-medium transition-colors ${
+              tab === item.id ? 'bg-muted text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-300 hover:bg-muted/50'
             }`}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">{item.icon}</svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">{item.icon}</svg>
             {item.label}
           </button>
         ))}
@@ -129,84 +128,84 @@ export default function CompliancePage() {
         <div className="flex-1 flex flex-col items-center justify-center p-20 opacity-20"><div className="loader-inline scale-150 animate-pulse text-brand-primary" /></div>
       ) : (<>
       <TabPanel id="dsar" active={tab}>
-        <div className="bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[56px] radial-gradient-glass overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div className="p-10 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between bg-white/2 gap-8">
-            <div className="flex items-center gap-6">
-               <div className="w-16 h-16 rounded-[24px] bg-white/2 border border-white/10 flex items-center justify-center text-brand-primary shadow-2xl">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div className="bg-background border border-border rounded-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="p-6 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+               <div className="w-12 h-12 rounded-md bg-card border border-border flex items-center justify-center text-brand-primary">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                </div>
                <div className="flex flex-col">
-                  <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Protocolo DSAR</h2>
-                  <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] italic leading-none">Global Privacy Orchestrator Node</span>
+                  <h2 className="text-xl font-bold text-white tracking-tight">Protocolo DSAR</h2>
+                  <span className="text-sm font-medium text-zinc-500 mt-1">Global Privacy Orchestrator Node</span>
                </div>
             </div>
-            <button className="h-14 px-10 rounded-2xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/10 transition-all flex items-center gap-4 italic shadow-2xl group">
-              <svg className="group-hover:rotate-12 transition-transform" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <button className="h-9 px-4 rounded-md bg-card border border-border text-white text-sm font-medium hover:bg-muted/50 transition-colors flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               Integrar OneTrust Protocol
             </button>
           </div>
 
           {dsars.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-32 text-center group">
-               <div className="w-24 h-24 rounded-[40px] bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-center mb-10 opacity-40 group-hover:scale-110 duration-1000 transition-transform shadow-2xl">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-emerald-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            <div className="flex flex-col items-center justify-center p-20 text-center">
+               <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-4">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
                </div>
-               <h4 className="text-[12px] font-black uppercase tracking-[0.5em] text-zinc-500 italic">Compliance Ativa</h4>
-               <p className="mt-4 text-[11px] font-black uppercase tracking-widest text-zinc-700 italic max-w-[400px] leading-loose">Nenhuma solicitação de acesso ou esquecimento detectada na fila de processamento.</p>
+               <h4 className="text-sm font-bold text-white">Compliance Ativa</h4>
+               <p className="mt-1 text-sm text-zinc-500 max-w-sm">Nenhuma solicitação de acesso ou esquecimento detectada na fila de processamento.</p>
             </div>
           ) : (
             <div className="w-full overflow-auto custom-scrollbar">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-white/5 bg-white/2 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-700 italic">
-                    <TableHead className="px-10 py-8">Protocolo</TableHead>
-                    <TableHead className="px-10 py-8">Titular dos Dados</TableHead>
-                    <TableHead className="px-10 py-8">Eixo de Requisição</TableHead>
-                    <TableHead className="px-10 py-8">Status Operacional</TableHead>
-                    <TableHead className="px-10 py-8">SLA Velocity</TableHead>
-                    <TableHead className="px-10 py-8 text-right">Governança</TableHead>
+                  <TableRow className="border-b border-border bg-background text-xs font-medium text-zinc-400">
+                    <TableHead className="px-6 py-4">Protocolo</TableHead>
+                    <TableHead className="px-6 py-4">Titular dos Dados</TableHead>
+                    <TableHead className="px-6 py-4">Eixo de Requisição</TableHead>
+                    <TableHead className="px-6 py-4">Status Operacional</TableHead>
+                    <TableHead className="px-6 py-4">SLA Velocity</TableHead>
+                    <TableHead className="px-6 py-4 text-right">Governança</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {dsars.map(d => {
                     const sla = slaStatus(d.sla_deadline)
                     return (
-                      <TableRow key={d.id} className="border-b border-white/5 transition-colors hover:bg-white/5 group">
-                        <TableCell className="px-10 py-8">
-                           <code className="font-mono text-[11px] font-black text-brand-primary tracking-[0.2em] select-all italic opacity-60 group-hover:opacity-100 transition-opacity">#{d.id.substring(0, 8).toUpperCase()}</code>
+                      <TableRow key={d.id} className="border-b border-border hover:bg-muted/50">
+                        <TableCell className="px-6 py-4">
+                           <code className="font-mono text-xs text-brand-primary">#{d.id.substring(0, 8).toUpperCase()}</code>
                         </TableCell>
-                        <TableCell className="px-10 py-8">
+                        <TableCell className="px-6 py-4">
                            <div className="flex flex-col">
-                              <span className="text-sm font-black text-white uppercase italic tracking-tighter">{d.requester_name}</span>
-                              <span className="text-[9px] font-bold text-zinc-600 lowercase tracking-widest leading-none mt-1">{d.requester_email}</span>
+                              <span className="text-sm font-medium text-white">{d.requester_name}</span>
+                              <span className="text-xs text-zinc-500 mt-1">{d.requester_email}</span>
                            </div>
                         </TableCell>
-                        <TableCell className="px-10 py-8">
-                           <span className="inline-flex h-8 items-center px-4 rounded-xl bg-white/2 border border-white/5 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 italic">
+                        <TableCell className="px-6 py-4">
+                           <span className="inline-flex items-center px-2 py-1 rounded bg-card border border-border text-xs font-medium text-zinc-300">
                               {DSAR_TYPES[d.request_type] || d.request_type}
                            </span>
                         </TableCell>
-                        <TableCell className="px-10 py-8">
-                           <span className={`inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] italic ${
+                        <TableCell className="px-6 py-4">
+                           <span className={`inline-flex items-center gap-2 text-xs font-medium ${
                               d.status === 'resolved' ? 'text-emerald-500' :
                               d.status === 'rejected' ? 'text-red-500' :
                               d.status === 'in-progress' ? 'text-brand-primary' :
                               'text-amber-500'
                            }`}>
-                              <span className={`w-2 h-2 rounded-full bg-current ${d.status !== 'resolved' ? 'animate-pulse' : ''} shadow-2xl shadow-current`} />
+                              <span className={`w-1.5 h-1.5 rounded-full bg-current ${d.status !== 'resolved' ? 'animate-pulse' : ''}`} />
                               {d.status === 'resolved' ? 'Finalizado' : d.status === 'rejected' ? 'Bloqueado' : d.status === 'in-progress' ? 'Análise Ativa' : 'Backlog'}
                            </span>
                         </TableCell>
-                        <TableCell className="px-10 py-8">
-                           <span className={`inline-flex h-8 items-center px-5 rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] shadow-2xl italic ${sla.colorClass.replace(/bg-.*-500\/10/, 'bg-black/60')}`}>
+                        <TableCell className="px-6 py-4">
+                           <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${sla.colorClass.replace(/bg-.*-500\/10/, 'bg-card')}`}>
                              {sla.label}
                            </span>
                         </TableCell>
-                        <TableCell className="px-10 py-8 text-right">
+                        <TableCell className="px-6 py-4 text-right">
                           <select 
                             value={d.status} 
                             onChange={e => updateDsar(d.id, e.target.value)} 
-                            className="h-12 w-[180px] bg-black/60 border border-white/5 rounded-2xl px-5 text-[10px] font-black uppercase tracking-[0.2em] text-white outline-none focus:ring-2 focus:ring-brand-primary/40 cursor-pointer hover:bg-black transition-all shadow-2xl italic"
+                            className="h-8 w-[140px] bg-card border border-border rounded px-2 text-xs text-zinc-300 outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer hover:bg-muted/50 transition-colors"
                           >
                             <option value="received">PROTOCOLAR</option>
                             <option value="in-progress">ANALISAR</option>
@@ -225,75 +224,75 @@ export default function CompliancePage() {
       </TabPanel>
 
       <TabPanel id="whistleblower" active={tab}>
-        <div className="bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[56px] radial-gradient-glass overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div className="p-10 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between bg-white/2 gap-8">
-            <div className="flex items-center gap-6">
-               <div className="w-16 h-16 rounded-[24px] bg-white/2 border border-white/10 flex items-center justify-center text-red-500 shadow-2xl">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <div className="bg-background border border-border rounded-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="p-6 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+               <div className="w-12 h-12 rounded-md bg-card border border-border flex items-center justify-center text-red-500">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                </div>
                <div className="flex flex-col">
-                  <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase text-red-500/80">Canal de Ética</h2>
-                  <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] italic leading-none">Intelligence Whistleblower Pipeline</span>
+                  <h2 className="text-xl font-bold text-white tracking-tight">Canal de Ética</h2>
+                  <span className="text-sm font-medium text-zinc-500 mt-1">Intelligence Whistleblower Pipeline</span>
                </div>
             </div>
-            <button className="h-14 px-10 rounded-2xl bg-white/2 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-red-500/10 transition-all italic flex items-center gap-4">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <button className="h-9 px-4 rounded-md bg-card border border-border text-white text-sm font-medium hover:bg-muted/50 transition-colors flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               Gestão Externa de Integridade
             </button>
           </div>
           
           {cases.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-32 text-center group">
-               <div className="w-24 h-24 rounded-[40px] bg-white/2 border border-white/5 flex items-center justify-center mb-10 opacity-20 shadow-2xl">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div className="flex flex-col items-center justify-center p-20 text-center">
+               <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-4 text-zinc-500">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                </div>
-               <h4 className="text-[12px] font-black uppercase tracking-[0.5em] text-zinc-700 italic">Ambiente Ético Consolidado</h4>
-               <p className="mt-4 text-[11px] font-black uppercase tracking-widest text-zinc-800 italic max-w-[400px] leading-loose">Nenhum reporte de conduta ou desvio de protocolo identificado na estrutura.</p>
+               <h4 className="text-sm font-bold text-white">Ambiente Ético Consolidado</h4>
+               <p className="mt-1 text-sm text-zinc-500 max-w-sm">Nenhum reporte de conduta ou desvio de protocolo identificado na estrutura.</p>
             </div>
           ) : (
             <div className="w-full overflow-auto custom-scrollbar">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-white/5 bg-white/2 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-700 italic">
-                    <TableHead className="px-10 py-8">Case ID</TableHead>
-                    <TableHead className="px-10 py-8">Classificação de Risco</TableHead>
-                    <TableHead className="px-10 py-8">Estado de Auditoria</TableHead>
-                    <TableHead className="px-10 py-8">SLA Response</TableHead>
-                    <TableHead className="px-10 py-8 text-right">Gerenciamento</TableHead>
+                  <TableRow className="border-b border-border bg-background text-xs font-medium text-zinc-400">
+                    <TableHead className="px-6 py-4">Case ID</TableHead>
+                    <TableHead className="px-6 py-4">Classificação de Risco</TableHead>
+                    <TableHead className="px-6 py-4">Estado de Auditoria</TableHead>
+                    <TableHead className="px-6 py-4">SLA Response</TableHead>
+                    <TableHead className="px-6 py-4 text-right">Gerenciamento</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {cases.map(c => {
                     const sla = slaStatus(c.sla_deadline)
                     return (
-                       <TableRow key={c.id} className="border-b border-white/5 transition-all hover:bg-red-500/30 group">
-                        <TableCell className="px-10 py-8 font-mono text-[11px] font-black text-red-500/80 tracking-[0.3em] italic uppercase">
+                       <TableRow key={c.id} className="border-b border-border hover:bg-muted/50">
+                        <TableCell className="px-6 py-4 font-mono text-xs text-red-500">
                            {c.case_code}
                         </TableCell>
-                        <TableCell className="px-10 py-8">
-                           <div className="text-sm font-black text-white italic tracking-tighter uppercase">{CASE_CATEGORIES[c.category] || "Geral/Outros"}</div>
-                           <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Protocolo Interno: {c.id.substring(0, 4)}</span>
+                        <TableCell className="px-6 py-4">
+                           <div className="text-sm font-medium text-white">{CASE_CATEGORIES[c.category] || "Geral/Outros"}</div>
+                           <span className="text-xs text-zinc-500 mt-1">Protocolo Interno: {c.id.substring(0, 4)}</span>
                         </TableCell>
-                        <TableCell className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.2em] italic">
-                           <span className={`inline-flex items-center gap-3 ${
+                        <TableCell className="px-6 py-4 text-xs font-medium">
+                           <span className={`inline-flex items-center gap-2 ${
                               c.status === 'closed' ? 'text-emerald-500' :
                               c.status === 'investigating' ? 'text-brand-primary' :
-                              'text-red-500 animate-pulse'
+                              'text-red-500'
                            }`}>
-                              <span className="w-2.5 h-2.5 rounded-full bg-current shadow-2xl" />
+                              <span className={`w-1.5 h-1.5 rounded-full bg-current ${c.status === 'new' ? 'animate-pulse' : ''}`} />
                               {c.status === 'closed' ? 'Encerrado' : c.status === 'investigating' ? 'Investigação Ativa' : 'Prioridade: Crítica'}
                            </span>
                         </TableCell>
-                        <TableCell className="px-10 py-8">
-                           <span className={`inline-flex h-8 items-center px-5 rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] shadow-2xl italic ${sla.colorClass.replace(/bg-.*-500\/10/, 'bg-black/60')}`}>
+                        <TableCell className="px-6 py-4">
+                           <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${sla.colorClass.replace(/bg-.*-500\/10/, 'bg-card')}`}>
                              {sla.label}
                            </span>
                         </TableCell>
-                        <TableCell className="px-10 py-8 text-right">
+                        <TableCell className="px-6 py-4 text-right">
                           <select 
                             value={c.status} 
                             onChange={e => updateCase(c.id, e.target.value)} 
-                            className="h-12 w-[180px] bg-black/60 border border-white/5 rounded-2xl px-5 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:ring-2 focus:ring-red-500/40 cursor-pointer shadow-2xl italic"
+                            className="h-8 w-[140px] bg-card border border-border rounded px-2 text-xs text-zinc-300 outline-none focus:ring-1 focus:ring-red-500 cursor-pointer hover:bg-muted/50 transition-colors"
                           >
                             <option value="new">PROTOCOLO</option>
                             <option value="investigating">APURAR</option>
@@ -311,28 +310,28 @@ export default function CompliancePage() {
       </TabPanel>
 
       <TabPanel id="policies" active={tab}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Policy Creation Panel */}
-          <div className="lg:col-span-4 bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[48px] radial-gradient-glass shadow-2xl overflow-hidden p-10 space-y-10 h-fit">
-               <div className="space-y-2">
-                 <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Mint Policy</h2>
-                 <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] italic leading-none">Cunhagem de Instrumentos Pro-Max</span>
+          <div className="lg:col-span-4 bg-background border border-border rounded-xl overflow-hidden p-6 space-y-6 h-fit">
+               <div className="space-y-1">
+                 <h2 className="text-xl font-bold tracking-tight text-white">Mint Policy</h2>
+                 <span className="text-sm font-medium text-zinc-500">Cunhagem de Instrumentos Pro-Max</span>
                </div>
                
-               <div className="space-y-8">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                       <label className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em] px-1 italic">Domínio Legal</label>
-                       <select value={newPolicy.type} onChange={e => setNewPolicy(p => ({ ...p, type: e.target.value }))} className="h-12 w-full bg-black/40 border border-white/5 rounded-2xl px-5 text-[10px] font-black text-white uppercase tracking-[0.2em] italic focus:ring-2 focus:ring-brand-primary/40 outline-none transition-all">
+               <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <label className="text-xs font-medium text-zinc-400">Domínio Legal</label>
+                       <select value={newPolicy.type} onChange={e => setNewPolicy(p => ({ ...p, type: e.target.value }))} className="h-10 w-full bg-card border border-border rounded text-sm text-zinc-300 px-3 focus:ring-1 focus:ring-brand-primary outline-none transition-all">
                           <option value="privacy">PRIVACIDADE</option>
                           <option value="terms">TERMOS E USO/EULA</option>
                           <option value="cookie">COOKIES GOV</option>
                           <option value="lgpd">DPA / SCCs</option>
                        </select>
                     </div>
-                    <div className="space-y-3">
-                       <label className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em] px-1 italic">Locale Protocol</label>
-                       <select value={newPolicy.locale} onChange={e => setNewPolicy(p => ({ ...p, locale: e.target.value }))} className="h-12 w-full bg-black/40 border border-white/5 rounded-2xl px-5 text-[10px] font-black text-white uppercase italic focus:ring-2 focus:ring-brand-primary/40 outline-none transition-all">
+                    <div className="space-y-2">
+                       <label className="text-xs font-medium text-zinc-400">Locale Protocol</label>
+                       <select value={newPolicy.locale} onChange={e => setNewPolicy(p => ({ ...p, locale: e.target.value }))} className="h-10 w-full bg-card border border-border rounded text-sm text-zinc-300 px-3 focus:ring-1 focus:ring-brand-primary outline-none transition-all">
                           <option value="pt">PT-BR (Brazil)</option>
                           <option value="en">EN-US (Global)</option>
                           <option value="es">ES-ES (Iberia)</option>
@@ -340,73 +339,72 @@ export default function CompliancePage() {
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
-                     <label className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em] px-1 italic">Título do Documento</label>
-                     <input type="text" placeholder="Instance Policy Name" value={newPolicy.title} onChange={e => setNewPolicy(p => ({ ...p, title: e.target.value }))} className="h-12 w-full bg-black/40 border border-white/5 rounded-2xl px-5 text-sm font-black text-white italic placeholder:text-zinc-800 focus:ring-2 focus:ring-brand-primary/40 outline-none transition-all uppercase tracking-tighter" />
+                  <div className="space-y-2">
+                     <label className="text-xs font-medium text-zinc-400">Título do Documento</label>
+                     <input type="text" placeholder="Instance Policy Name" value={newPolicy.title} onChange={e => setNewPolicy(p => ({ ...p, title: e.target.value }))} className="h-10 w-full bg-card border border-border rounded px-3 text-sm font-medium text-white placeholder:text-zinc-600 focus:ring-1 focus:ring-brand-primary outline-none transition-all" />
                   </div>
                   
-                  <div className="space-y-3">
-                     <label className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em] px-1 italic">Structure (MD Protocol)</label>
-                     <textarea placeholder="## 1. Governance Provisions..." value={newPolicy.body_md} onChange={e => setNewPolicy(p => ({ ...p, body_md: e.target.value }))} rows={12} className="w-full bg-black/40 border border-white/5 rounded-3xl p-6 text-[13px] font-bold italic font-mono text-zinc-400 placeholder:text-zinc-800 focus:ring-2 focus:ring-brand-primary/40 outline-none resize-none leading-relaxed transition-all" />
+                  <div className="space-y-2">
+                     <label className="text-xs font-medium text-zinc-400">Structure (MD Protocol)</label>
+                     <textarea placeholder="## 1. Governance Provisions..." value={newPolicy.body_md} onChange={e => setNewPolicy(p => ({ ...p, body_md: e.target.value }))} rows={12} className="w-full bg-card border border-border rounded p-4 text-sm font-mono text-zinc-300 placeholder:text-zinc-600 focus:ring-1 focus:ring-brand-primary outline-none resize-none leading-relaxed transition-all" />
                   </div>
                   
-                  <button className="relative group w-full h-14 rounded-2xl bg-brand-primary text-white text-[11px] font-black uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(0,173,232,0.4)] hover:scale-[1.05] active:scale-95 transition-all overflow-hidden italic" onClick={createPolicy} disabled={!newPolicy.title || !newPolicy.body_md}>
-                    <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  <button className="w-full h-10 rounded bg-brand-primary text-white text-sm font-medium hover:brightness-110 transition-colors disabled:opacity-50" onClick={createPolicy} disabled={!newPolicy.title || !newPolicy.body_md}>
                     Publicar Protocolo v1.0
                   </button>
                </div>
           </div>
           
           {/* Policies Directory */}
-          <div className="lg:col-span-8 bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[48px] radial-gradient-glass overflow-hidden shadow-2xl flex flex-col min-h-[700px]">
-               <div className="p-10 border-b border-white/5 bg-white/2 space-y-2">
-                  <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Governance Directory</h2>
-                  <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] italic leading-none">Active Policy Ledger Set</span>
+          <div className="lg:col-span-8 bg-background border border-border rounded-xl overflow-hidden flex flex-col min-h-[700px]">
+               <div className="p-6 border-b border-border space-y-1">
+                  <h2 className="text-xl font-bold tracking-tight text-white">Governance Directory</h2>
+                  <span className="text-sm font-medium text-zinc-500">Active Policy Ledger Set</span>
                </div>
                
                {policies.length === 0 ? (
-                 <div className="flex-1 flex flex-col items-center justify-center p-32 text-center opacity-20 group">
-                    <div className="w-24 h-24 rounded-[40px] bg-white/2 border border-white/5 mb-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-1000">
-                       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                 <div className="flex-1 flex flex-col items-center justify-center p-20 text-center">
+                    <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-4 text-zinc-500">
+                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                     </div>
-                    <h4 className="text-[12px] font-black uppercase tracking-[0.5em] text-zinc-600 italic">Repositório Criptográfico Vazio</h4>
-                    <p className="mt-4 text-[11px] font-black uppercase tracking-widest text-zinc-800 italic max-w-[400px] leading-loose">Nenhum instrumento jurídico foi autenticado neste nó de governança.</p>
+                    <h4 className="text-sm font-bold text-white">Repositório Vazio</h4>
+                    <p className="mt-1 text-sm text-zinc-500 max-w-sm">Nenhum instrumento jurídico foi autenticado neste nó de governança.</p>
                  </div>
                ) : (
                  <div className="w-full overflow-auto custom-scrollbar flex-1">
                    <Table>
                      <TableHeader>
-                       <TableRow className="border-b border-white/5 bg-white/2 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-700 italic">
-                         <TableHead className="px-10 py-8">Instance Document</TableHead>
-                         <TableHead className="px-10 py-8">Locale</TableHead>
-                         <TableHead className="px-10 py-8">Ledger v.</TableHead>
-                         <TableHead className="px-10 py-8">Protocol Status</TableHead>
-                         <TableHead className="px-10 py-8 text-right">Audit Timestamp</TableHead>
+                       <TableRow className="border-b border-border bg-background text-xs font-medium text-zinc-400">
+                         <TableHead className="px-6 py-4">Instance Document</TableHead>
+                         <TableHead className="px-6 py-4">Locale</TableHead>
+                         <TableHead className="px-6 py-4">Ledger v.</TableHead>
+                         <TableHead className="px-6 py-4">Protocol Status</TableHead>
+                         <TableHead className="px-6 py-4 text-right">Audit Timestamp</TableHead>
                        </TableRow>
                      </TableHeader>
                      <TableBody>
                        {policies.map(p => (
-                         <TableRow key={p.id} className="border-b border-white/5 transition-all hover:bg-white/5 group">
-                           <TableCell className="px-10 py-8">
-                              <div className="font-black text-white tracking-tighter text-sm uppercase italic group-hover:text-brand-primary transition-colors">{p.title}</div>
-                              <span className="inline-flex mt-2 items-center rounded-lg bg-white/2 border border-white/5 px-3 py-1 text-[8px] font-black uppercase text-zinc-600 tracking-[0.3em] italic">
+                         <TableRow key={p.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                           <TableCell className="px-6 py-4">
+                              <div className="font-medium text-white text-sm hover:text-brand-primary transition-colors">{p.title}</div>
+                              <span className="inline-flex mt-1 items-center rounded bg-card border border-border px-2 py-0.5 text-xs font-medium text-zinc-500">
                                  LEGAL://{p.type.toUpperCase()}
                               </span>
                            </TableCell>
-                           <TableCell className="px-10 py-8">
-                              <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl border border-white/10 font-black text-[10px] uppercase text-white bg-black/40 shadow-2xl italic tracking-widest">
+                           <TableCell className="px-6 py-4">
+                              <span className="inline-flex items-center justify-center w-8 h-8 rounded border border-border font-medium text-xs text-zinc-300 bg-card">
                                  {p.locale}
                               </span>
                            </TableCell>
-                           <TableCell className="px-10 py-8 font-mono font-black tracking-[0.3em] text-brand-primary text-xs italic">v{p.version}.0</TableCell>
-                           <TableCell className="px-10 py-8">
-                              <span className={`inline-flex items-center px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] border italic ${
-                                 p.status === 'published' ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5 shadow-2xl shadow-emerald-500/10' : 'text-zinc-600 border-white/5 bg-white/2'
+                           <TableCell className="px-6 py-4 font-mono font-medium text-brand-primary text-xs">v{p.version}.0</TableCell>
+                           <TableCell className="px-6 py-4">
+                              <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                                 p.status === 'published' ? 'text-emerald-500 bg-emerald-500/10' : 'text-zinc-500 bg-card border border-border'
                               }`}>
                                  {p.status === 'published' ? 'Publicado' : 'Draft Node'}
                               </span>
                            </TableCell>
-                           <TableCell className="px-10 py-8 text-right font-mono text-[10px] font-black text-zinc-700 uppercase tracking-tighter italic">
+                           <TableCell className="px-6 py-4 text-right font-mono text-xs text-zinc-500">
                              {new Date(p.created_at).toLocaleString('pt-BR')}
                            </TableCell>
                          </TableRow>

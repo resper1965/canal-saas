@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { authClient } from "../lib/auth-client";
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
+import { isSuperAdminEmail } from "../components/dashboard/nav-config";
 
 interface Organization {
   id: string;
@@ -18,8 +19,7 @@ export default function OrganizationsPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const SUPER_ADMIN_EMAILS = ["resper@bekaa.eu", "admin@ness.com.br", "resper@ness.com.br"];
-  const isSuperAdmin = session?.user?.role === 'admin' || SUPER_ADMIN_EMAILS.includes(session?.user?.email || "");
+  const isSuperAdmin = session?.user?.role === 'admin' || isSuperAdminEmail(session?.user?.email);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -90,12 +90,12 @@ export default function OrganizationsPage() {
   if (!isSuperAdmin) {
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-         <div className="flex-1 flex flex-col items-center justify-center p-20 rounded-2xl border border-red-500/20 bg-background/50">
-            <div className="h-20 w-20 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-6 border border-red-500/20 shadow-sm animate-pulse">
-               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+         <div className="flex-1 flex flex-col items-center justify-center p-20 rounded-xl border border-border bg-background">
+            <div className="h-16 w-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-6">
+               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </div>
-            <h2 className="text-lg font-semibold tracking-tighter text-foreground uppercase">Acesso Negado</h2>
-            <p className="text-muted-foreground font-medium mt-2 max-w-md text-center">{errorMsg}</p>
+            <h2 className="text-xl font-bold tracking-tight text-white">Acesso Negado</h2>
+            <p className="text-zinc-500 font-medium mt-2 max-w-sm text-center">{errorMsg}</p>
          </div>
       </div>
     );
@@ -103,14 +103,12 @@ export default function OrganizationsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/50 pb-6 relative shrink-0">
-        <div className="absolute inset-x-0 bottom-0 h-px bg-linear-to-r from-transparent via-border/60 to-transparent"></div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-6">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-3">
-             <svg className="text-muted-foreground/60" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 10h16M4 14h16M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M8 10v4M16 10v4"/></svg>
-            Cloud Platform <span className="text-muted-foreground/30 font-light mx-1">/</span> Tenant Ops
+          <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+            Organizações
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-zinc-400 mt-1">
             Instâncias Multi-Tenant e Provisionamento
           </p>
         </div>
@@ -141,12 +139,12 @@ export default function OrganizationsPage() {
            <div className="w-full overflow-x-auto min-w-0 max-w-full custom-scrollbar">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border/50 bg-background/40 text-xs tracking-tight text-muted-foreground text-left">
-                  <th className="font-bold py-3 px-6">Estrutura Org. (Tenant)</th>
-                  <th className="font-bold py-3 px-4">Identifier / Slug</th>
-                  <th className="font-bold py-3 px-4">Policy / Billing</th>
-                  <th className="font-bold py-3 px-4 text-center">Seats Utilizados</th>
-                  <th className="font-bold py-3 px-6 text-right w-[150px]">Diretiva</th>
+                <tr className="border-b border-border bg-background text-xs font-medium text-zinc-400 text-left">
+                  <th className="py-3 px-6">Estrutura Org. (Tenant)</th>
+                  <th className="py-3 px-4">Identifier / Slug</th>
+                  <th className="py-3 px-4">Policy / Billing</th>
+                  <th className="py-3 px-4 text-center">Seats Utilizados</th>
+                  <th className="py-3 px-6 text-right w-[150px]">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -157,27 +155,27 @@ export default function OrganizationsPage() {
                   }
                   
                   return (
-                    <tr key={o.id} className="border-b border-border/20 transition-colors hover:bg-muted/30">
+                    <tr key={o.id} className="border-b border-border transition-colors hover:bg-muted/50">
                       <td className="py-3 px-6">
-                        <div className="font-bold text-sm text-foreground">{o.name}</div>
-                        <div className="text-xs uppercase font-mono text-muted-foreground mt-1.5 tracking-wider opacity-70">ID: {o.id}</div>
+                        <div className="font-medium text-sm text-white">{o.name}</div>
+                        <div className="text-xs text-zinc-500 mt-1">ID: {o.id}</div>
                       </td>
-                      <td className="py-3 px-4 text-xs font-mono font-medium text-muted-foreground">
-                        <span className="bg-muted/50 border border-border/60 font-medium tracking-wide px-2 py-0.5 rounded-md text-xs uppercase text-foreground">{o.slug}</span>
+                      <td className="py-3 px-4 text-xs font-mono text-zinc-400">
+                        <span className="bg-card border border-border px-2 py-0.5 rounded-md text-xs text-zinc-300">{o.slug}</span>
                       </td>
                       <td className="py-3 px-4">
                         <select
-                          className="flex h-9 w-[140px] items-center justify-between rounded-xl border border-border/50 bg-background/50 px-3 py-1 text-xs tracking-tight transition-all hover:bg-background focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary font-bold appearance-none cursor-pointer"
+                          className="flex h-8 w-[140px] items-center justify-between rounded-md border border-border bg-card px-2 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer"
                           value={meta.plan || "free"}
                           onChange={(e) => handleUpdatePlan(o, e.target.value)}
                         >
-                          <option value="free">Tier: FREE</option>
-                          <option value="pro">Tier: PRO</option>
-                          <option value="enterprise">Tier: ENTERPRISE</option>
+                          <option value="free">Tier: Free</option>
+                          <option value="pro">Tier: Pro</option>
+                          <option value="enterprise">Tier: Enterprise</option>
                         </select>
                       </td>
                       <td className="py-3 px-4 text-center">
-                         <span className="inline-flex shadow-sm items-center justify-center bg-accent/10 border-accent/20 text-accent font-mono w-8 h-8 rounded-full text-xs font-semibold border">
+                         <span className="inline-flex items-center justify-center bg-card border-border text-zinc-300 font-medium w-7 h-7 rounded text-xs border">
                             {o.memberCount || 0}
                          </span>
                       </td>

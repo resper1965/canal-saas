@@ -10,7 +10,8 @@ export async function upsertVector(
   env: { AI: Ai; VECTORIZE: VectorizeIndex },
   entryId: string,
   data: Record<string, unknown>,
-  collectionSlug: string
+  collectionSlug: string,
+  tenantId?: string
 ) {
   try {
     const title = (data.title as string) || (data.name as string) || collectionSlug
@@ -43,6 +44,7 @@ export async function upsertVector(
           title,
           collection: collectionSlug,
           content: text.slice(0, 1000), // metadata cap
+          ...(tenantId ? { tenant_id: tenantId } : {}),
         },
       },
     ])

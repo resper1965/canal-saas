@@ -130,7 +130,7 @@ export function LogoCard({ logo }: LogoCardProps) {
       {isSynthetic ? (
         <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border/40">
           <div className="flex justify-center gap-2">
-            <button onClick={() => handleDownloadPNG('light')} className="flex-1 inline-flex items-center justify-center rounded text-[10px] sm:text-xs font-bold h-7 sm:h-8 bg-black text-white hover:bg-black/80 transition-colors shadow-sm" title="Baixar PNG Claro">
+            <button onClick={() => handleDownloadPNG('light')} className="flex-1 inline-flex items-center justify-center rounded text-[10px] sm:text-xs font-bold h-7 sm:h-8 bg-black text-white hover:bg-background transition-colors shadow-sm" title="Baixar PNG Claro">
               PNG CLARO
             </button>
             <button onClick={() => handleDownloadSVG('light')} className="flex-1 inline-flex items-center justify-center rounded text-[10px] sm:text-xs font-bold h-7 sm:h-8 border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors" title="Baixar SVG Claro">

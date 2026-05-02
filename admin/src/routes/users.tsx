@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { authClient, admin } from "../lib/auth-client";
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
+import { isSuperAdminEmail } from "../components/dashboard/nav-config";
 
 export default function UsersPage() {
   const { data: session } = authClient.useSession();
@@ -9,8 +10,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const SUPER_ADMIN_EMAILS = ["resper@bekaa.eu", "admin@ness.com.br", "resper@ness.com.br"];
-  const isSuperAdmin = session?.user?.role === 'admin' || SUPER_ADMIN_EMAILS.includes(session?.user?.email || "");
+  const isSuperAdmin = session?.user?.role === 'admin' || isSuperAdminEmail(session?.user?.email);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -54,12 +54,12 @@ export default function UsersPage() {
   if (!isSuperAdmin) {
     return (
       <div className="flex-1 p-6 flex flex-col items-center justify-center animate-in fade-in slide-in-from-bottom-2 duration-300">
-        <div className="flex flex-col items-center justify-center p-20 rounded-xl border border-red-500/20 bg-background/50">
-          <div className="h-20 w-20 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-6 border border-red-500/20 shadow-sm animate-pulse">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <div className="flex flex-col items-center justify-center p-20 rounded-xl border border-border bg-background">
+          <div className="h-16 w-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-6">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </div>
-          <h2 className="text-lg font-semibold text-foreground">Acesso Negado</h2>
-          <p className="text-muted-foreground font-medium mt-2 max-w-md text-center">{errorMsg}</p>
+          <h2 className="text-xl font-bold tracking-tight text-white">Acesso Negado</h2>
+          <p className="text-zinc-500 font-medium mt-2 max-w-sm text-center">{errorMsg}</p>
         </div>
       </div>
     );
@@ -96,32 +96,32 @@ export default function UsersPage() {
             <div className="w-full overflow-x-auto min-w-0 max-w-full custom-scrollbar">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border/50 bg-muted/20 text-xs text-muted-foreground text-left">
-                    <th className="font-semibold py-3 px-5">Identidade</th>
-                    <th className="font-semibold py-3 px-4">Email</th>
-                    <th className="font-semibold py-3 px-4">Privilégio</th>
-                    <th className="font-semibold py-3 px-4">Estado</th>
-                    <th className="font-semibold py-3 px-5 text-right w-[150px]">Ações</th>
+                  <tr className="border-b border-border bg-background text-xs font-medium text-zinc-400 text-left">
+                    <th className="py-3 px-5">Identidade</th>
+                    <th className="py-3 px-4">Email</th>
+                    <th className="py-3 px-4">Privilégio</th>
+                    <th className="py-3 px-4">Estado</th>
+                    <th className="py-3 px-5 text-right w-[150px]">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((u: any) => {
                     const isBanned = u.banned;
                     return (
-                      <tr key={u.id} className={`border-b border-border/20 transition-colors ${isBanned ? 'bg-red-500/5' : 'hover:bg-muted/30'}`}>
+                      <tr key={u.id} className={`border-b border-border transition-colors ${isBanned ? 'bg-red-500/5' : 'hover:bg-muted/50'}`}>
                         <td className="py-3 px-5">
-                          <div className="font-medium text-sm text-foreground flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs border border-primary/20 shrink-0">
+                          <div className="font-medium text-sm text-white flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-card text-brand-primary flex items-center justify-center font-bold text-xs border border-border shrink-0">
                               {u.name?.charAt(0) || '?'}
                             </div>
                             {u.name || "N/A"}
                           </div>
-                          <div className="text-[10px] font-mono text-muted-foreground mt-1 ml-11 opacity-70">ID: {u.id}</div>
+                          <div className="text-xs text-zinc-500 mt-1 ml-11">ID: {u.id}</div>
                         </td>
-                        <td className="py-3 px-4 text-xs font-mono text-muted-foreground">{u.email}</td>
+                        <td className="py-3 px-4 text-xs font-mono text-zinc-400">{u.email}</td>
                         <td className="py-3 px-4">
                           <select
-                            className="h-8 w-[130px] rounded-lg border border-border bg-background px-2 text-xs transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 appearance-none cursor-pointer"
+                            className="h-8 w-[130px] rounded-md border border-border bg-card px-2 text-xs text-zinc-200 transition-colors focus:outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer disabled:opacity-50"
                             value={u.role || "user"}
                             onChange={(e) => handleRoleChange(u.id, e.target.value as "user" | "admin")}
                             disabled={u.email === session?.user?.email}
@@ -137,10 +137,10 @@ export default function UsersPage() {
                         </td>
                         <td className="py-3 px-5 flex justify-end">
                           <button
-                            className={`inline-flex h-8 items-center justify-center rounded-lg border text-xs font-medium px-3 transition-all ${
+                            className={`inline-flex h-8 items-center justify-center rounded-md border text-xs font-medium px-3 transition-colors ${
                               isBanned
-                                ? 'border-border bg-background hover:bg-emerald-500 hover:text-white hover:border-emerald-500'
-                                : 'border-border bg-background hover:bg-red-500 hover:text-white hover:border-red-500'
+                                ? 'border-border hover:bg-emerald-500 hover:text-white hover:border-emerald-500 text-zinc-300'
+                                : 'border-border hover:bg-red-500 hover:text-white hover:border-red-500 text-zinc-300'
                             }`}
                             onClick={() => handleBan(u.id, isBanned)}
                             disabled={u.email === session?.user?.email}

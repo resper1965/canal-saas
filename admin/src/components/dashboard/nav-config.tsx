@@ -276,6 +276,21 @@ export const NAV: NavGroup[] = [
       },
     ],
   },
+  {
+    section: "Ajuda",
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>,
+    items: [
+      {
+        to: "/help",
+        label: "Manual",
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+          </svg>
+        ),
+      },
+    ],
+  },
 ];
 
 export const PAGE_META: Record<string, { title: string; sub: string }> = {
@@ -301,6 +316,16 @@ export const PAGE_META: Record<string, { title: string; sub: string }> = {
   "/publications": { title: "Publicações & RI", sub: "Resultados financeiros, relatórios e documentos" },
   "/automation":  { title: "Automações & IA",   sub: "Social, Newsletters, Triagem de CVs" },
   "/emergency":   { title: "Fluxo de Emergência", sub: "Tratativa de Chamados Críticos do Cliente" },
+  "/help":        { title: "Manual",             sub: "Referência completa da plataforma" },
 };
 
-export const SUPER_ADMIN_EMAILS = ["resper@bekaa.eu", "admin@ness.com.br", "resper@ness.com.br"];
+// Platform administrators: all @bekaa.eu email addresses
+export const SUPER_ADMIN_DOMAIN = 'bekaa.eu';
+export const SUPER_ADMIN_EMAILS = ['admin@ness.com.br', 'resper@ness.com.br'];
+
+/** Check if user is a platform super admin (can navigate all orgs) */
+export function isSuperAdminEmail(email: string | undefined | null): boolean {
+  if (!email) return false;
+  if (email.endsWith(`@${SUPER_ADMIN_DOMAIN}`)) return true;
+  return SUPER_ADMIN_EMAILS.includes(email);
+}

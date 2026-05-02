@@ -10,6 +10,7 @@ import { Hono, Context } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, sql, like, desc, and } from 'drizzle-orm'
 import * as schema from '../db/schema'
+import { hashApiKey } from '../security'
 import type { Bindings } from '../index'
 
 type Variables = {
@@ -67,6 +68,27 @@ admin.delete('/organizations/:id', async (c) => {
   return c.json({ success: true })
 })
 
+// ── Usage & Plan Status ─────────────────────────────────────────
+admin.get('/usage/:orgId', async (c) => {
+  const orgId = c.req.param('orgId')
+  const { getUsage } = await import('../plans')
+  const usage = await getUsage(c.env.DB, orgId)
+  return c.json({
+    plan: usage.plan,
+    limits: usage.limits,
+    current: {
+      entries: usage.entries,
+      collections: usage.collections,
+      domains: usage.domains,
+    },
+    percentage: {
+      entries: Math.round((usage.entries / usage.limits.totalEntries) * 100),
+      collections: Math.round((usage.collections / usage.limits.collections) * 100),
+      domains: Math.round((usage.domains / usage.limits.domains) * 100),
+    },
+  })
+})
+
 // ── API Keys ────────────────────────────────────────────────────
 admin.get('/api-keys/:orgId', async (c) => {
   const orgId = c.req.param('orgId')
@@ -82,10 +104,167 @@ admin.get('/api-keys/:orgId', async (c) => {
   return c.json(results)
 })
 
+admin.post('/api-keys', async (c) => {
+  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  const { name, orgId } = await c.req.json() as { name: string; orgId: string }
+  if (!name || !orgId) return c.json({ error: 'Name and orgId required' }, 400)
+
+  const id = crypto.randomUUID()
+  const rawKey = `pk_${crypto.randomUUID().replace(/-/g, '')}`
+  const prefix = rawKey.substring(0, 7)
+  const now = new Date().toISOString()
+
+  // Store SHA-256 hash — raw key is never persisted
+  const hashedKey = await hashApiKey(rawKey)
+
+  const db = getDb(c)
+  await db.insert(schema.apikey).values({
+    id,
+    name,
+    prefix,
+    key: hashedKey,
+    metadata: JSON.stringify({ orgId }),
+    createdAt: now,
+  })
+
+  // Return the full key ONLY on creation (never again)
+  return c.json({ id, name, prefix, key: rawKey, createdAt: now }, 201)
+})
+
 admin.delete('/api-keys/:id', async (c) => {
   const id = c.req.param('id')
   const db = getDb(c)
   await db.delete(schema.apikey).where(eq(schema.apikey.id, id))
+  return c.json({ success: true })
+})
+
+// ── Tenant Domains (CORS dinâmico) ──────────────────────────────
+admin.get('/domains', async (c) => {
+  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  const tenantId = c.get('tenantId')
+  const db = getDb(c)
+  
+  const query = tenantId 
+    ? db.select().from(schema.tenant_domains).where(eq(schema.tenant_domains.tenant_id, tenantId))
+    : db.select().from(schema.tenant_domains)
+  
+  return c.json(await query.orderBy(desc(schema.tenant_domains.created_at)))
+})
+
+admin.post('/domains', async (c) => {
+  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  const tenantId = c.get('tenantId')
+  if (!tenantId) return c.json({ error: 'No active organization' }, 400)
+
+  const { domain } = await c.req.json() as { domain: string }
+  if (!domain) return c.json({ error: 'Domain is required' }, 400)
+
+  // Clean domain (remove protocol/path)
+  const cleanDomain = domain.replace(/^https?:\/\//, '').split('/')[0].toLowerCase()
+  const token = crypto.randomUUID()
+
+  const db = getDb(c)
+  const id = crypto.randomUUID()
+  
+  try {
+    await db.insert(schema.tenant_domains).values({
+      id,
+      tenant_id: tenantId,
+      domain: cleanDomain,
+      verified: 0,
+      verification_token: token,
+      created_at: new Date().toISOString(),
+    })
+  } catch (e: any) {
+    if (e.message?.includes('UNIQUE')) return c.json({ error: 'Domain already registered' }, 409)
+    throw e
+  }
+
+  return c.json({
+    id,
+    domain: cleanDomain,
+    verified: false,
+    verification: {
+      method: 'TXT record',
+      record: `_canal-verify.${cleanDomain}`,
+      value: token,
+      instructions: `Add a TXT record to your DNS:\n  Host: _canal-verify\n  Value: ${token}\n\nOnce added, call POST /api/admin/domains/${id}/verify`
+    }
+  }, 201)
+})
+
+admin.post('/domains/:id/verify', async (c) => {
+  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  const id = c.req.param('id')
+  const db = getDb(c)
+  
+  // Get domain and verification token
+  const [record] = await db.select().from(schema.tenant_domains).where(eq(schema.tenant_domains.id, id))
+  if (!record) return c.json({ error: 'Domain not found' }, 404)
+
+  if (record.verified) {
+    return c.json({ success: true, verified: true, message: 'Already verified' })
+  }
+
+  // Real DNS verification via Cloudflare DoH (DNS over HTTPS)
+  let verified = false
+  try {
+    const dohUrl = `https://cloudflare-dns.com/dns-query?name=_canal-verify.${record.domain}&type=TXT`
+    const dnsRes = await fetch(dohUrl, {
+      headers: { 'Accept': 'application/dns-json' },
+    })
+
+    if (dnsRes.ok) {
+      const dnsData = await dnsRes.json() as { Answer?: Array<{ data: string }> }
+      const txtRecords = dnsData.Answer || []
+      
+      // Check if any TXT record matches the verification token
+      for (const txt of txtRecords) {
+        const value = txt.data?.replace(/"/g, '').trim()
+        if (value === record.verification_token) {
+          verified = true
+          break
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[DNS Verify] DoH lookup failed:', err)
+    // Don't fail hard — inform the user
+  }
+
+  if (!verified) {
+    return c.json({
+      success: false,
+      verified: false,
+      message: 'DNS TXT record not found or does not match',
+      expected: {
+        record: `_canal-verify.${record.domain}`,
+        type: 'TXT',
+        value: record.verification_token,
+      },
+      hint: 'DNS propagation can take up to 48 hours. Try again later.',
+    }, 422)
+  }
+
+  // Mark as verified
+  await db.update(schema.tenant_domains)
+    .set({ verified: 1 })
+    .where(eq(schema.tenant_domains.id, id))
+
+  // Invalidate CORS cache for this domain
+  try {
+    await c.env.CANAL_KV.delete(`cors:https://${record.domain}`)
+    await c.env.CANAL_KV.delete(`cors:http://${record.domain}`)
+  } catch {}
+
+  return c.json({ success: true, verified: true, domain: record.domain })
+})
+
+admin.delete('/domains/:id', async (c) => {
+  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  const id = c.req.param('id')
+  const db = getDb(c)
+  await db.delete(schema.tenant_domains).where(eq(schema.tenant_domains.id, id))
   return c.json({ success: true })
 })
 
@@ -271,7 +450,7 @@ admin.post('/newsletters/send', async (c) => {
         <div style="font-size:14px;line-height:1.8;color:#333;white-space:pre-wrap;">${body.replace(/</g, '&lt;').replace(/\n/g, '<br/>')}</div>
       </div>
       <div style="background:#F8F9FA;padding:20px 40px;border-top:1px solid #eee;">
-        <p style="font-size:11px;color:#999;margin:0;">ness. · canal.ness.com.br</p>
+        <p style="font-size:11px;color:#999;margin:0;">ness. · canal.bekaa.eu</p>
       </div>
     </div>
   `
@@ -285,7 +464,7 @@ admin.post('/newsletters/send', async (c) => {
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${c.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: 'ness. <newsletter@canal.ness.com.br>', to: batch, subject, html }),
+        body: JSON.stringify({ from: 'ness. <newsletter@canal.bekaa.eu>', to: batch, subject, html }),
       })
       sentCount += batch.length
     } catch (err) { console.error('[newsletter] batch send error:', err) }
@@ -451,7 +630,7 @@ admin.post('/communications/forward', async (c) => {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${c.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: 'Canal CMS <canal@canal.ness.com.br>',
+      from: 'Canal CMS <canal@canal.bekaa.eu>',
       to: [to],
       subject,
       html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">

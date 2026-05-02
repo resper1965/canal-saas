@@ -117,25 +117,24 @@ export default function CollectionPage({ slug }: { slug: string }) {
     <div className="flex flex-col h-full overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-1000 w-full">
       
       {/* ── Operational Intelligence Controller ── */}
-      <div className="flex-none px-10 md:px-16 py-12 flex border-b border-white/5 w-full bg-white/1">
-        <div className="flex flex-col gap-10 w-full max-w-[1750px] mx-auto">
+      <div className="flex-none px-6 md:px-10 py-8 flex border-b border-border w-full bg-background">
+        <div className="flex flex-col gap-6 w-full max-w-[1750px] mx-auto">
           
-          <div className="flex items-center justify-between w-full h-16">
-            <div className="flex items-center gap-10">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-6">
               <div className="flex flex-col">
-                <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase leading-none">{collection.label}</h1>
-                <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] italic mt-3 leading-none">Content Ledger Node: {slug}</span>
+                <h1 className="text-2xl font-bold tracking-tight text-white uppercase leading-none">{collection.label}</h1>
+                <span className="text-xs font-medium text-zinc-500 mt-2 leading-none">Content Ledger Node: {slug}</span>
               </div>
 
-              <div className="h-10 w-px bg-white/5 mx-4" />
+              <div className="h-8 w-px bg-muted mx-2" />
 
               {collection.has_locale && (
-                <div className="flex p-1.5 bg-black/40 backdrop-blur-3xl rounded-[20px] border border-white/5 h-14 shadow-2xl relative group/locale group">
-                  <div className="absolute -inset-4 bg-brand-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+                <div className="flex p-1 bg-card rounded-lg border border-border h-10">
                   {LOCALES.map((l) => (
                     <button 
                       key={l} 
-                      className={`relative z-10 px-8 h-full rounded-[14px] text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-700 italic outline-none ${l === locale ? 'bg-brand-primary shadow-2xl text-white scale-[1.05]' : 'text-zinc-600 hover:text-zinc-300'}`}
+                      className={`px-4 h-full rounded-md text-xs font-medium uppercase transition-colors outline-none ${l === locale ? 'bg-muted text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                       onClick={() => setLocale(l)}
                     >
                       {l}
@@ -145,32 +144,30 @@ export default function CollectionPage({ slug }: { slug: string }) {
               )}
               
               {meta && (
-                <div className="flex items-center gap-5 bg-white/2 px-8 h-14 rounded-[20px] border border-white/5 shadow-2xl">
-                   <div className="w-2.5 h-2.5 rounded-full bg-brand-primary animate-pulse shadow-[0_0_15px_rgba(0,173,232,0.6)]" />
-                   <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] italic">
-                     {meta.total} CORE {meta.total === 1 ? "ENTRY" : "ENTRIES"} ACTIVE
+                <div className="flex items-center gap-3 bg-card px-4 h-10 rounded-lg border border-border">
+                   <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+                   <span className="text-xs font-medium text-zinc-400">
+                     {meta.total} {meta.total === 1 ? "ENTRY" : "ENTRIES"}
                    </span>
                 </div>
               )}
             </div>
 
             <button 
-              className="group relative flex items-center gap-4 bg-brand-primary text-white h-16 px-10 rounded-[22px] shadow-[0_20px_40px_rgba(0,173,232,0.4)] hover:scale-[1.05] active:scale-95 transition-all duration-700 outline-none overflow-hidden italic"
+              className="flex items-center gap-2 bg-brand-primary text-white h-10 px-6 rounded-md hover:brightness-110 transition-colors outline-none"
               onClick={openCreate}
             >
-              <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" className="relative z-10"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-              <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em]">{`Injear ${collection.label} Pro-Max`}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+              <span className="text-sm font-medium">{`Create ${collection.label}`}</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* ── Analytical Content Canvas ── */}
-      <div className="flex-1 overflow-y-auto overflow-x-auto px-10 md:px-16 py-14 custom-scrollbar w-full">
+      <div className="flex-1 overflow-y-auto overflow-x-auto px-6 md:px-10 py-8 custom-scrollbar w-full bg-background">
         <div className="max-w-[1750px] mx-auto">
-          <div className="bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[56px] radial-gradient-glass shadow-[0_60px_120px_rgba(0,0,0,0.5)] p-10 group overflow-hidden relative">
-            <div className="absolute -inset-40 bg-brand-primary/2 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+          <div className="bg-background border border-border rounded-xl overflow-hidden relative">
             <EntryTable
               collection={collection}
               items={items}
@@ -193,7 +190,7 @@ export default function CollectionPage({ slug }: { slug: string }) {
       {/* ── Protocol Modal ── */}
       {modal && (
         <div className="animate-in fade-in zoom-in-95 duration-700 fixed inset-0 z-100 flex items-center justify-center p-6 md:p-12 overflow-hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={closeModal} />
+          <div className="absolute inset-0 bg-background " onClick={closeModal} />
           <div className="relative z-110 w-full max-w-5xl max-h-[90vh] overflow-hidden">
             <EntryModal
               mode={modal}

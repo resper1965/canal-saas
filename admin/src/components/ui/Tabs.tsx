@@ -18,7 +18,7 @@ export function TabGroup({ tabs, active, onChange, className = "" }: TabGroupPro
     <div
       role="tablist"
       aria-orientation="horizontal"
-      className={`inline-flex h-11 items-center justify-center gap-1 rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 p-1.5 text-zinc-500 shadow-2xl ${className}`}
+      className={`inline-flex h-10 items-center justify-center gap-1 rounded-lg bg-card border border-border p-1 text-muted-foreground ${className}`}
     >
       {tabs.map((tab) => (
         <button
@@ -29,10 +29,10 @@ export function TabGroup({ tabs, active, onChange, className = "" }: TabGroupPro
           aria-controls={`tabpanel-${tab.id}`}
           tabIndex={active === tab.id ? 0 : -1}
           onClick={() => onChange(tab.id)}
-          className={`inline-flex items-center gap-2 justify-center whitespace-nowrap rounded-lg px-6 h-full text-[11px] font-bold uppercase tracking-widest transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+          className={`inline-flex items-center gap-2 justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand-primary ${
             active === tab.id
-              ? "bg-white/10 text-white shadow-lg border border-white/10 scale-105"
-              : "hover:text-zinc-300 hover:bg-white/5"
+              ? "bg-muted text-foreground shadow-sm"
+              : "hover:text-foreground hover:bg-muted/50"
           }`}
         >
           {tab.icon && <span aria-hidden="true">{tab.icon}</span>}

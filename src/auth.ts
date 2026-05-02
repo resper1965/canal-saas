@@ -18,21 +18,76 @@ import { apiKey } from "@better-auth/api-key";
 import { kyselyAdapter } from "@better-auth/kysely-adapter";
 import { Kysely } from "kysely";
 import { D1Dialect } from "kysely-d1";
+import { sendEmail, welcomeEmail } from "./email";
 
 // Factory: cria instância por request para injetar o binding D1 do Cloudflare
-export function createAuth(db: D1Database, secret: string, baseURL: string) {
+export function createAuth(
+  db: D1Database,
+  secret: string,
+  baseURL: string,
+  opts?: { googleClientId?: string; googleClientSecret?: string; sendEmailBinding?: any; EMAIL?: any; SEND_EMAIL?: any; kv?: KVNamespace }
+) {
   const kyselyDb = new Kysely({ dialect: new D1Dialect({ database: db }) });
 
   return betterAuth({
     database: kyselyAdapter(kyselyDb, { type: "sqlite" }),
     secret,
     baseURL,
+    
+    // KV-based secondary storage for OAuth PKCE state (Workers are stateless)
+    ...(opts?.kv ? {
+      secondaryStorage: {
+        get: async (key: string) => await opts.kv!.get(key),
+        set: async (key: string, value: string, ttl?: number) => {
+          await opts.kv!.put(key, value, { expirationTtl: Math.max(ttl || 300, 60) });
+        },
+        delete: async (key: string) => { await opts.kv!.delete(key); },
+      },
+    } : {}),
+
+    // Using Better Auth default cookie settings
+
+    // ── Auto-admin for @bekaa.eu ─────────────────────────────────
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (user) => {
+            const email = user.email || "";
+            if (email.endsWith("@bekaa.eu")) {
+              return { data: { ...user, role: "admin" } };
+            }
+            return { data: user };
+          },
+          after: async (user) => {
+            // Send welcome email (fire-and-forget)
+            if (user.email) {
+              const name = user.name || user.email.split("@")[0];
+              const template = welcomeEmail(name);
+              sendEmail({ EMAIL: opts?.EMAIL, SEND_EMAIL: opts?.SEND_EMAIL || opts?.sendEmailBinding }, {
+                to: user.email,
+                ...template,
+              }).catch(() => {});
+            }
+          },
+        },
+      },
+    },
 
     // ── Email & Password ────────────────────────────────────────
     emailAndPassword: {
       enabled: true,
       autoSignIn: true,
     },
+
+    // ── Social Providers (Google OAuth) ──────────────────────────
+    ...(opts?.googleClientId && opts?.googleClientSecret ? {
+      socialProviders: {
+        google: {
+          clientId: opts.googleClientId,
+          clientSecret: opts.googleClientSecret,
+        },
+      },
+    } : {}),
 
     // ── Account & User Management ───────────────────────────────
     user: {
@@ -52,7 +107,7 @@ export function createAuth(db: D1Database, secret: string, baseURL: string) {
 
     // ── Trusted origins ─────────────────────────────────────────
     trustedOrigins: [
-      "https://canal.ness.com.br",
+      "https://canal.bekaa.eu",
       "http://localhost:8787",
       "http://localhost:5173",
       "http://localhost:5174"

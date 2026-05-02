@@ -31,16 +31,16 @@ function GithubKanbanTab() {
   const done = issues.filter(i => i.status === 'done');
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      <div className="flex items-center justify-between bg-black/40 backdrop-blur-3xl border border-white/5 p-6 rounded-[32px] shadow-2xl radial-gradient-glass">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex items-center justify-between bg-background border border-border p-6 rounded-xl">
         <div className="space-y-1">
-          <h2 className="text-xl font-black text-white italic tracking-tighter uppercase">GitHub Projects Kanban</h2>
-          <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none italic">Software Engineering Operational Board</p>
+          <h2 className="text-xl font-bold tracking-tight text-white">GitHub Projects Kanban</h2>
+          <p className="text-sm font-medium text-zinc-500">Software Engineering Operational Board</p>
         </div>
         <button 
           onClick={fetchIssues} 
           disabled={loading} 
-          className="h-12 px-8 flex items-center bg-brand-primary text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,173,232,0.4)] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 italic"
+          className="h-10 px-6 flex items-center bg-card border border-border text-white text-sm font-medium rounded-md hover:bg-muted transition-colors disabled:opacity-50"
         >
           {loading ? 'Sincronizando Core...' : 'Sync Repository'}
         </button>
@@ -48,26 +48,26 @@ function GithubKanbanTab() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Todo Column */}
-        <div className="rounded-[40px] flex flex-col h-full min-h-[600px] bg-black/40 backdrop-blur-3xl border border-white/5 shadow-2xl radial-gradient-glass overflow-hidden group">
-          <div className="px-8 py-6 border-b border-white/5 font-black text-[10px] tracking-[0.2em] flex justify-between items-center bg-white/2">
-            <span className="flex items-center gap-3 uppercase text-zinc-400 italic">
-               <div className="w-2 h-2 rounded-full bg-zinc-600 animate-pulse" /> Backlog Protocol
+        <div className="rounded-xl flex flex-col h-full min-h-[600px] bg-background border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-card">
+            <span className="flex items-center gap-2 text-sm font-semibold text-zinc-400">
+               <div className="w-2 h-2 rounded-full bg-zinc-600" /> Backlog
             </span>
-            <span className="h-6 px-3 rounded-full bg-black/40 border border-white/5 text-zinc-600 font-mono flex items-center justify-center">{loading ? '...' : todo.length}</span>
+            <span className="h-6 px-3 rounded-full bg-muted text-xs font-medium text-zinc-400 flex items-center justify-center">{loading ? '...' : todo.length}</span>
           </div>
-          <div className="p-6 space-y-4 flex-1 overflow-y-auto custom-scrollbar">
+          <div className="p-4 space-y-3 flex-1 overflow-y-auto custom-scrollbar">
             {loading ? (
-              [1,2,3].map(i => <div key={i} className="h-32 rounded-3xl bg-white/2 border border-white/5 animate-pulse" />)
+              [1,2,3].map(i => <div key={i} className="h-28 rounded-lg bg-card animate-pulse" />)
             ) : todo.map((issue: any) => (
-              <a href={issue.url} target="_blank" rel="noreferrer" key={issue.id} className="block p-6 rounded-3xl bg-white/2 border border-white/5 hover:border-brand-primary/20 hover:bg-white/5 transition-all duration-500 shadow-xl group/card">
-                <div className="flex justify-between items-start mb-3">
-                   <span className="text-[10px] font-black text-brand-primary uppercase italic tracking-widest">Ness.Engine</span>
-                   <span className="text-[9px] font-black font-mono text-zinc-800">#{issue.id}</span>
+              <a href={issue.url} target="_blank" rel="noreferrer" key={issue.id} className="block p-4 rounded-lg bg-card border border-border hover:bg-muted transition-colors group/card">
+                <div className="flex justify-between items-start mb-2">
+                   <span className="text-xs font-semibold text-zinc-400">Ness.Engine</span>
+                   <span className="text-xs font-mono text-zinc-500">#{issue.id}</span>
                 </div>
-                <h4 className="text-[14px] font-black leading-tight text-white italic group-hover/card:text-brand-primary transition-colors">{issue.title}</h4>
+                <h4 className="text-sm font-medium text-white group-hover/card:text-brand-primary">{issue.title}</h4>
                 {issue.labels && issue.labels.length > 0 && (
-                  <div className="flex gap-2 flex-wrap mt-4">
-                    {issue.labels.map((l: string) => <span key={l} className="text-[8px] font-black bg-white/5 text-zinc-500 px-2 py-1 rounded-lg uppercase tracking-widest">{l}</span>)}
+                  <div className="flex gap-2 flex-wrap mt-3">
+                    {issue.labels.map((l: string) => <span key={l} className="text-[10px] font-medium bg-muted text-zinc-400 px-2 py-0.5 rounded">{l}</span>)}
                   </div>
                 )}
               </a>
@@ -76,32 +76,29 @@ function GithubKanbanTab() {
         </div>
 
         {/* In Progress Column */}
-        <div className="rounded-[40px] flex flex-col h-full min-h-[600px] bg-black/40 backdrop-blur-3xl border border-brand-primary/20 shadow-[0_40px_80px_-20px_rgba(0,173,232,0.2)] radial-gradient-glass overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-             <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          </div>
-          <div className="px-8 py-6 border-b border-white/5 font-black text-[10px] tracking-[0.2em] flex justify-between items-center bg-brand-primary/5">
-            <span className="flex items-center gap-3 uppercase text-brand-primary italic">
-               <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse shadow-[0_0_12px_rgba(0,173,232,0.8)]" /> Active Sprint
+        <div className="rounded-xl flex flex-col h-full min-h-[600px] bg-background border border-brand-primary/30 overflow-hidden relative">
+          <div className="px-6 py-4 border-b border-brand-primary/20 flex justify-between items-center bg-brand-primary/5">
+            <span className="flex items-center gap-2 text-sm font-semibold text-brand-primary">
+               <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse shadow-[0_0_8px_rgba(0,173,232,0.8)]" /> Active Sprint
             </span>
-            <span className="h-6 px-3 rounded-full bg-brand-primary/20 border border-brand-primary/20 text-brand-primary font-mono flex items-center justify-center">{loading ? '...' : inProgress.length}</span>
+            <span className="h-6 px-3 rounded-full bg-brand-primary/20 text-xs font-medium text-brand-primary flex items-center justify-center">{loading ? '...' : inProgress.length}</span>
           </div>
-          <div className="p-6 space-y-4 flex-1 overflow-y-auto custom-scrollbar">
+          <div className="p-4 space-y-3 flex-1 overflow-y-auto custom-scrollbar">
             {loading ? (
-              [1,2,3].map(i => <div key={i} className="h-32 rounded-3xl bg-white/2 border border-white/5 animate-pulse" />)
+              [1,2,3].map(i => <div key={i} className="h-28 rounded-lg bg-card animate-pulse" />)
             ) : inProgress.map((issue: any) => (
-              <a href={issue.url} target="_blank" rel="noreferrer" key={issue.id} className="block p-6 rounded-3xl bg-brand-primary/5 border border-brand-primary/20 hover:bg-brand-primary/10 transition-all duration-500 shadow-2xl relative group/active">
+              <a href={issue.url} target="_blank" rel="noreferrer" key={issue.id} className="block p-4 rounded-lg bg-brand-primary/10 border border-brand-primary/30 hover:bg-brand-primary/20 transition-colors relative group/active">
                 <div className="absolute top-4 right-4 animate-pulse">
                    <div className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
                 </div>
-                <div className="flex justify-between items-start mb-3">
-                   <span className="text-[10px] font-black text-brand-primary uppercase italic tracking-widest">Priority Node</span>
-                   <span className="text-[9px] font-black font-mono text-brand-primary/60">#{issue.id}</span>
+                <div className="flex justify-between items-start mb-2">
+                   <span className="text-xs font-semibold text-brand-primary">Priority Node</span>
+                   <span className="text-xs font-mono text-brand-primary/60">#{issue.id}</span>
                 </div>
-                <h4 className="text-[14px] font-black leading-tight text-white italic">{issue.title}</h4>
+                <h4 className="text-sm font-medium text-white">{issue.title}</h4>
                 {issue.labels && issue.labels.length > 0 && (
-                  <div className="flex gap-2 flex-wrap mt-4">
-                    {issue.labels.map((l: string) => <span key={l} className="text-[8px] font-black bg-brand-primary/20 text-brand-primary px-2 py-1 rounded-lg uppercase tracking-widest">{l}</span>)}
+                  <div className="flex gap-2 flex-wrap mt-3">
+                    {issue.labels.map((l: string) => <span key={l} className="text-[10px] font-medium bg-brand-primary/20 text-brand-primary px-2 py-0.5 rounded">{l}</span>)}
                   </div>
                 )}
               </a>
@@ -110,22 +107,22 @@ function GithubKanbanTab() {
         </div>
 
         {/* Done Column */}
-        <div className="rounded-[40px] flex flex-col h-full min-h-[600px] bg-black/40 backdrop-blur-3xl border border-white/5 shadow-2xl radial-gradient-glass overflow-hidden opacity-60 hover:opacity-100 transition-opacity duration-700">
-          <div className="px-8 py-6 border-b border-white/5 font-black text-[10px] tracking-[0.2em] flex justify-between items-center bg-white/2">
-            <span className="flex items-center gap-3 uppercase text-emerald-500 italic">
-               <div className="w-2 h-2 rounded-full bg-emerald-500" /> Shipped Logic
+        <div className="rounded-xl flex flex-col h-full min-h-[600px] bg-background border border-border overflow-hidden opacity-60 hover:opacity-100 transition-opacity duration-300">
+          <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-card">
+            <span className="flex items-center gap-2 text-sm font-semibold text-emerald-500">
+               <div className="w-2 h-2 rounded-full bg-emerald-500" /> Done
             </span>
-            <span className="h-6 px-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 font-mono flex items-center justify-center">{loading ? '...' : done.length}</span>
+            <span className="h-6 px-3 rounded-full bg-emerald-500/10 text-xs font-medium text-emerald-500 flex items-center justify-center">{loading ? '...' : done.length}</span>
           </div>
-          <div className="p-6 space-y-4 flex-1 overflow-y-auto custom-scrollbar">
+          <div className="p-4 space-y-3 flex-1 overflow-y-auto custom-scrollbar">
             {loading ? (
-              [1,2,3].map(i => <div key={i} className="h-20 rounded-3xl bg-white/2 border border-white/5 animate-pulse" />)
+              [1,2,3].map(i => <div key={i} className="h-16 rounded-lg bg-card animate-pulse" />)
             ) : done.slice(0, 15).map((issue: any) => (
-               <a href={issue.url} target="_blank" rel="noreferrer" key={issue.id} className="block p-4 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 transition-all group/done">
-                <h4 className="text-[12px] font-black line-through text-zinc-600 group-hover/done:text-emerald-500 italic transition-colors line-clamp-1">{issue.title}</h4>
+               <a href={issue.url} target="_blank" rel="noreferrer" key={issue.id} className="block p-3 rounded-lg bg-card border border-border hover:bg-muted transition-colors group/done">
+                <h4 className="text-sm font-medium line-through text-zinc-500 group-hover/done:text-emerald-500 transition-colors line-clamp-1">{issue.title}</h4>
                 <div className="flex justify-between items-baseline mt-2">
-                   <span className="text-[9px] font-black font-mono text-zinc-800">#{issue.id}</span>
-                   <span className="text-[8px] font-black text-emerald-500/40 uppercase">Verified</span>
+                   <span className="text-xs font-mono text-zinc-600">#{issue.id}</span>
+                   <span className="text-xs text-emerald-500">Verified</span>
                 </div>
               </a>
             ))}
@@ -187,7 +184,7 @@ export default function AutomationDashboard() {
   };
 
   return (
-    <div className="max-w-[1700px] w-full px-10 md:px-12 py-10 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+    <div className="max-w-[1700px] w-full px-10 md:px-12 py-10 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Tab Controller Engine */}
       <div className="flex items-center justify-center">
@@ -200,57 +197,57 @@ export default function AutomationDashboard() {
           ]}
           active={activeTab}
           onChange={setActiveTab}
-          className="h-12 bg-black/40 backdrop-blur-3xl border border-white/5 p-1 rounded-2xl shadow-2xl"
+          className="h-10 bg-background border border-border p-1 rounded-lg"
         />
       </div>
 
       <div className="min-h-[600px] relative">
         <TabPanel id="social" active={activeTab}>
-            <div className="bg-black/40 backdrop-blur-3xl rounded-[48px] border border-white/5 shadow-2xl radial-gradient-glass overflow-hidden flex flex-col">
-              <div className="px-10 py-10 border-b border-white/5 bg-white/2">
+            <div className="bg-background rounded-xl border border-border overflow-hidden flex flex-col">
+              <div className="px-8 py-6 border-b border-border bg-card">
                  <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                       <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase">Generative Social Engine</h2>
-                       <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest leading-none italic">LLM-Dynamic Cross-Platform Ingestion</p>
+                       <h2 className="text-xl font-bold tracking-tight text-white">Generative Social Engine</h2>
+                       <p className="text-sm font-medium text-zinc-500">LLM-Dynamic Cross-Platform Ingestion</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary animate-pulse">
-                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                    <div className="w-10 h-10 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
+                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
                     </div>
                  </div>
               </div>
-              <div className="p-10 space-y-10">
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 italic block">Target Platform</label>
+              <div className="p-8 space-y-8">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <label className="text-xs font-semibold text-zinc-400">Target Platform</label>
                     <div className="relative group">
                       <select 
                         value={socialPlatform}
                         onChange={e => setSocialPlatform(e.target.value)}
-                        className="h-14 w-full rounded-2xl border border-white/10 bg-black/40 px-6 text-[11px] font-black uppercase tracking-widest text-white shadow-2xl focus:outline-none focus:ring-2 focus:ring-brand-primary/20 hover:bg-white/5 transition-all appearance-none cursor-pointer">
-                        <option value="linkedin" className="bg-zinc-900 italic">LinkedIn Executive Protocol</option>
-                        <option value="instagram" className="bg-zinc-900 italic">Instagram Visual Meta</option>
+                        className="h-10 w-full rounded-md border border-border bg-card px-4 text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-brand-primary transition-colors appearance-none cursor-pointer">
+                        <option value="linkedin">LinkedIn Executive Protocol</option>
+                        <option value="instagram">Instagram Visual Meta</option>
                       </select>
-                      <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">
-                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m6 9 6 6 6-6"/></svg>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 italic block">Orchestration Brief</label>
+                  <div className="space-y-3">
+                    <label className="text-xs font-semibold text-zinc-400">Orchestration Brief</label>
                     <input 
                       value={socialBrief}
                       onChange={e => setSocialBrief(e.target.value)}
-                      className="h-14 w-full rounded-2xl border border-white/10 bg-black/40 px-6 text-sm font-bold text-white shadow-2xl focus:outline-none focus:ring-2 focus:ring-brand-primary/20 hover:bg-white/5 transition-all placeholder:text-zinc-800" placeholder="Conceito, notícias ou insights do setor..." />
+                      className="h-10 w-full rounded-md border border-border bg-card px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-primary transition-colors placeholder:text-zinc-600" placeholder="Conceito, notícias ou insights do setor..." />
                   </div>
                 </div>
                 
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="flex justify-between items-end">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 italic block">Cognitive Post Output</label>
+                    <label className="text-xs font-semibold text-zinc-400">Cognitive Post Output</label>
                     <button 
                       onClick={handleGenerateSocial}
                       disabled={isDrafting || !socialBrief}
-                      className="h-12 px-8 flex items-center bg-brand-primary text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,173,232,0.4)] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 italic">
+                      className="h-10 px-6 flex items-center bg-card border border-border text-white text-sm font-medium rounded-md hover:bg-muted transition-colors disabled:opacity-50">
                       {isDrafting ? 'Propagando Tokens...' : 'Start Brainstorming'}
                     </button>
                   </div>
@@ -258,21 +255,21 @@ export default function AutomationDashboard() {
                     <textarea 
                       value={socialDraft}
                       onChange={(e) => setSocialDraft(e.target.value)}
-                      className="min-h-[300px] w-full rounded-[32px] border border-white/5 bg-black/40 px-8 py-8 text-[13px] font-mono font-bold text-zinc-400 shadow-2xl transition-all placeholder:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 hover:bg-white/5 resize-none leading-relaxed italic" placeholder="O output generativo final será transposto aqui após a orquestração." />
+                      className="min-h-[250px] w-full rounded-md border border-border bg-card p-4 text-sm font-mono text-zinc-300 transition-colors placeholder:text-zinc-700 focus:outline-none focus:ring-1 focus:ring-brand-primary resize-none leading-relaxed" placeholder="O output generativo final será transposto aqui após a orquestração." />
                   </div>
                 </div>
                 
-                <div className="flex gap-4 justify-end pt-8 border-t border-white/5">
+                <div className="flex gap-3 justify-end pt-6 border-t border-border">
                   <button 
                     onClick={() => handlePublish(true)}
                     disabled={!socialDraft || isDrafting}
-                    className="h-14 px-8 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 hover:text-white transition-all disabled:opacity-50 italic">
+                    className="h-10 px-6 rounded-md bg-card border border-border hover:bg-muted text-sm font-medium text-white transition-colors disabled:opacity-50">
                     Queue Protocol (24h)
                   </button>
                   <button 
                     onClick={() => handlePublish(false)}
                     disabled={!socialDraft || isDrafting}
-                    className="h-14 px-12 rounded-2xl bg-brand-primary text-white text-[11px] font-black uppercase tracking-[0.3em] shadow-[0_25px_50px_-12px_rgba(0,173,232,0.5)] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 italic">
+                    className="h-10 px-6 rounded-md bg-brand-primary text-white text-sm font-medium hover:brightness-110 transition-colors disabled:opacity-50">
                     Execute Live Push
                   </button>
                 </div>
@@ -281,15 +278,15 @@ export default function AutomationDashboard() {
         </TabPanel>
 
         <TabPanel id="newsletter" active={activeTab}>
-            <div className="bg-black/40 backdrop-blur-3xl rounded-[48px] border border-white/5 shadow-2xl radial-gradient-glass min-h-[500px] flex flex-col items-center justify-center p-24 text-center group">
-              <div className="h-24 w-24 mb-10 rounded-3xl bg-brand-primary/5 flex items-center justify-center border border-brand-primary/20 shadow-2xl group-hover:scale-110 transition-transform duration-700">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-brand-primary animate-pulse">
+            <div className="bg-background rounded-xl border border-border min-h-[500px] flex flex-col items-center justify-center p-20 text-center">
+              <div className="h-16 w-16 mb-6 rounded-2xl bg-card border border-border flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-500">
                   <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
                 </svg>
               </div>
-              <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-4">Draft Engine: Offline</h3>
-              <p className="text-[11px] font-black text-zinc-600 uppercase tracking-[0.4em] max-w-sm italic leading-relaxed">Nenhuma campanha orquestrada. Inicie um draft para habilitar seu SMTP relay pipeline.</p>
-              <button className="h-14 px-12 mt-12 rounded-2xl bg-brand-primary text-white text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl hover:scale-105 transition-all italic">
+              <h3 className="text-xl font-bold tracking-tight text-white mb-2">Draft Engine: Offline</h3>
+              <p className="text-sm text-zinc-500 max-w-sm">Nenhuma campanha orquestrada. Inicie um draft para habilitar seu SMTP relay pipeline.</p>
+              <button className="h-10 px-6 mt-8 rounded-md bg-brand-primary text-white text-sm font-medium hover:brightness-110 transition-colors">
                 Initialize Blueprint
               </button>
             </div>
@@ -300,20 +297,20 @@ export default function AutomationDashboard() {
         </TabPanel>
         
         <TabPanel id="brandbook" active={activeTab}>
-            <div className="bg-black/40 backdrop-blur-3xl rounded-[48px] border border-white/5 shadow-2xl radial-gradient-glass p-12">
-               <div className="flex flex-col xl:flex-row items-center gap-12">
-                  <div className="flex-1 w-full bg-black/60 border border-white/10 p-8 rounded-[32px] shadow-inner overflow-hidden relative group">
+            <div className="bg-background rounded-xl border border-border p-8">
+               <div className="flex flex-col xl:flex-row items-center gap-8">
+                  <div className="flex-1 w-full bg-card border border-border p-6 rounded-lg relative">
                     <div className="absolute top-4 right-4">
-                       <span className="text-[8px] font-black text-brand-primary uppercase tracking-widest font-mono">HTML v5.3</span>
+                       <span className="text-xs font-mono text-zinc-500">HTML v5.3</span>
                     </div>
-                    <code className="text-[13px] font-mono leading-loose text-zinc-500 group-hover:text-zinc-300 transition-colors block italic">
-                      &lt;div style=&quot;font-family: 'Ness', sans-serif; font-weight: 900;&quot;&gt;<br/>
+                    <code className="text-sm font-mono leading-relaxed text-zinc-400 block">
+                      &lt;div style=&quot;font-family: 'Ness', sans-serif; font-weight: 600;&quot;&gt;<br/>
                         &nbsp;&nbsp;&lt;h1&gt;Digital Handoff Protocol&lt;/h1&gt;<br/>
                         &nbsp;&nbsp;&lt;span style=&quot;color: #00ADE8;&quot;&gt;Verified Asset v4&lt;/span&gt;<br/>
                       &lt;/div&gt;
                     </code>
                   </div>
-                  <button className="h-16 px-12 rounded-2xl bg-brand-primary text-white text-[11px] font-black uppercase tracking-[0.4em] shadow-[0_30px_60px_-15px_rgba(0,173,232,0.6)] hover:scale-105 active:scale-95 transition-all italic whitespace-nowrap">
+                  <button className="h-10 px-6 rounded-md bg-brand-primary text-white text-sm font-medium hover:brightness-110 transition-colors whitespace-nowrap">
                     Extrair Build.Protocol
                   </button>
                </div>

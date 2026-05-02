@@ -193,26 +193,25 @@ export default function PublicationsPage() {
     <div className="flex flex-col h-full overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-1000 w-full">
 
       {/* ── KPI Telemetry Header ── */}
-      <div className="flex-none px-10 md:px-16 py-10 border-b border-white/5 w-full bg-white/1">
-        <div className="max-w-[1750px] mx-auto space-y-10">
+      <div className="flex-none px-6 md:px-10 py-8 border-b border-border w-full bg-background">
+        <div className="max-w-[1750px] mx-auto space-y-8">
 
           {/* Title Row */}
           <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-10">
+            <div className="flex items-center gap-6">
               <div className="flex flex-col">
-                <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase leading-none">Publicações & RI</h1>
-                <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] italic mt-3 leading-none">Resultados, Relatórios & Documentos Institucionais</span>
+                <h1 className="text-2xl font-bold tracking-tight text-white uppercase leading-none">Publicações & RI</h1>
+                <span className="text-xs font-medium text-zinc-500 mt-2 leading-none">Resultados, Relatórios & Documentos Institucionais</span>
               </div>
 
-              <div className="h-10 w-px bg-white/5 mx-4" />
+              <div className="h-8 w-px bg-muted mx-2" />
 
               {/* Locale Switcher */}
-              <div className="flex p-1.5 bg-black/40 backdrop-blur-3xl rounded-[20px] border border-white/5 h-14 shadow-2xl relative group">
-                <div className="absolute -inset-4 bg-brand-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+              <div className="flex p-1 bg-card rounded-lg border border-border h-10">
                 {LOCALES.map((l) => (
                   <button
                     key={l}
-                    className={`relative z-10 px-8 h-full rounded-[14px] text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-700 italic outline-none ${l === locale ? "bg-brand-primary shadow-2xl text-white scale-[1.05]" : "text-zinc-600 hover:text-zinc-300"}`}
+                    className={`px-4 h-full rounded-md text-xs font-medium uppercase transition-colors outline-none ${l === locale ? "bg-muted text-white" : "text-zinc-500 hover:text-zinc-300"}`}
                     onClick={() => setLocale(l)}
                   >
                     {l}
@@ -221,9 +220,9 @@ export default function PublicationsPage() {
               </div>
 
               {meta && (
-                <div className="flex items-center gap-5 bg-white/2 px-8 h-14 rounded-[20px] border border-white/5 shadow-2xl">
-                  <div className="w-2.5 h-2.5 rounded-full bg-brand-primary animate-pulse shadow-[0_0_15px_rgba(0,173,232,0.6)]" />
-                  <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] italic">
+                <div className="flex items-center gap-3 bg-card px-4 h-10 rounded-lg border border-border">
+                  <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+                  <span className="text-xs font-medium text-zinc-400">
                     {meta.total} {meta.total === 1 ? "PUBLICAÇÃO" : "PUBLICAÇÕES"}
                   </span>
                 </div>
@@ -231,27 +230,25 @@ export default function PublicationsPage() {
             </div>
 
             <button
-              className="group relative flex items-center gap-4 bg-brand-primary text-white h-16 px-10 rounded-[22px] shadow-[0_20px_40px_rgba(0,173,232,0.4)] hover:scale-[1.05] active:scale-95 transition-all duration-700 outline-none overflow-hidden italic"
+              className="flex items-center gap-2 bg-brand-primary text-white h-10 px-6 rounded-md hover:brightness-110 transition-colors outline-none"
               onClick={openCreate}
             >
-              <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" className="relative z-10"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-              <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em]">Nova Publicação</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+              <span className="text-sm font-medium">Nova Publicação</span>
             </button>
           </div>
 
           {/* KPI Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { label: "Total Publicações", value: totalPubs, color: "text-white", glow: "" },
-              { label: "Documentos PDF", value: pdfCount, color: "text-brand-primary", glow: "shadow-[0_0_20px_rgba(0,173,232,0.15)]" },
-              { label: "Em Destaque", value: featuredCount, color: "text-amber-400", glow: "shadow-[0_0_20px_rgba(245,158,11,0.15)]" },
-              { label: "Categorias Ativas", value: Object.keys(categoryCounts).length, color: "text-emerald-400", glow: "shadow-[0_0_20px_rgba(16,185,129,0.15)]" },
+              { label: "Total Publicações", value: totalPubs, color: "text-white" },
+              { label: "Documentos PDF", value: pdfCount, color: "text-brand-primary" },
+              { label: "Em Destaque", value: featuredCount, color: "text-amber-500" },
+              { label: "Categorias Ativas", value: Object.keys(categoryCounts).length, color: "text-emerald-500" },
             ].map((kpi, i) => (
-              <div key={i} className={`group relative p-7 bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[28px] radial-gradient-glass overflow-hidden ${kpi.glow} hover:border-white/10 transition-all duration-700`}>
-                <div className="absolute -inset-10 bg-white/2 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
-                <span className="block text-[9px] font-black uppercase tracking-[0.4em] text-zinc-600 italic relative z-10">{kpi.label}</span>
-                <span className={`block text-4xl font-black tracking-tighter italic mt-3 relative z-10 ${kpi.color}`}>{kpi.value}</span>
+              <div key={i} className={`p-6 bg-card border border-border rounded-xl flex flex-col`}>
+                <span className="text-xs font-semibold uppercase text-zinc-500">{kpi.label}</span>
+                <span className={`text-2xl font-bold mt-2 ${kpi.color}`}>{kpi.value}</span>
               </div>
             ))}
           </div>
@@ -259,24 +256,24 @@ export default function PublicationsPage() {
       </div>
 
       {/* ── Content Canvas ── */}
-      <div className="flex-1 overflow-y-auto overflow-x-auto px-10 md:px-16 py-10 custom-scrollbar w-full">
-        <div className="max-w-[1750px] mx-auto space-y-10">
+      <div className="flex-1 overflow-y-auto overflow-x-auto px-6 md:px-10 py-8 custom-scrollbar w-full bg-background">
+        <div className="max-w-[1750px] mx-auto space-y-8">
 
           {/* Filters Bar */}
-          <div className="flex items-center gap-6 flex-wrap">
+          <div className="flex items-center gap-4 flex-wrap">
             <div className="relative group">
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="h-12 pl-5 pr-10 bg-black/40 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 appearance-none focus:outline-none focus:ring-2 focus:ring-brand-primary/20 hover:bg-white/5 transition-all italic"
+                className="h-10 pl-4 pr-10 bg-card border border-border rounded-md text-sm font-medium text-white appearance-none focus:outline-none focus:ring-1 focus:ring-brand-primary"
               >
                 <option value="">Todas Categorias</option>
                 {Object.entries(CATEGORY_LABELS).map(([key, val]) => (
-                  <option key={key} value={key} className="bg-zinc-900">{val.icon} {val.label}</option>
+                  <option key={key} value={key}>{val.icon} {val.label}</option>
                 ))}
               </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="m6 9 6 6 6-6"/></svg>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
               </div>
             </div>
 
@@ -284,22 +281,22 @@ export default function PublicationsPage() {
               <select
                 value={filterYear}
                 onChange={(e) => setFilterYear(e.target.value)}
-                className="h-12 pl-5 pr-10 bg-black/40 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 appearance-none focus:outline-none focus:ring-2 focus:ring-brand-primary/20 hover:bg-white/5 transition-all italic"
+                className="h-10 pl-4 pr-10 bg-card border border-border rounded-md text-sm font-medium text-white appearance-none focus:outline-none focus:ring-1 focus:ring-brand-primary"
               >
                 <option value="">Todos os Anos</option>
                 {availableYears.map((y) => (
-                  <option key={y} value={y} className="bg-zinc-900">{y}</option>
+                  <option key={y} value={y}>{y}</option>
                 ))}
               </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="m6 9 6 6 6-6"/></svg>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
               </div>
             </div>
 
             {(filterCategory || filterYear) && (
               <button
                 onClick={() => { setFilterCategory(""); setFilterYear(""); }}
-                className="h-12 px-6 rounded-2xl border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 hover:text-white hover:bg-white/5 transition-all italic"
+                className="h-10 px-4 rounded-md border border-border text-sm font-medium text-zinc-400 hover:text-white hover:bg-muted transition-colors"
               >
                 Limpar Filtros
               </button>
@@ -315,20 +312,19 @@ export default function PublicationsPage() {
 
           {/* Empty State */}
           {!loading && items.length === 0 && (
-            <div className="bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[56px] radial-gradient-glass shadow-2xl p-32 text-center group overflow-hidden relative">
-              <div className="absolute -inset-40 bg-brand-primary/2 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
-              <div className="w-24 h-24 rounded-[40px] bg-white/2 border border-white/5 mx-auto mb-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-1000 shadow-2xl">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-700">
+            <div className="bg-card border border-border rounded-xl p-20 text-center">
+              <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-6 flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-500">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                 </svg>
               </div>
-              <h4 className="text-[12px] font-black uppercase tracking-[0.5em] text-zinc-600 italic">Nenhuma Publicação</h4>
-              <p className="mt-4 text-[11px] font-black uppercase tracking-widest text-zinc-800 italic max-w-[500px] mx-auto leading-loose">
+              <h4 className="text-sm font-bold text-white">Nenhuma Publicação</h4>
+              <p className="mt-2 text-sm text-zinc-500 max-w-md mx-auto">
                 Cadastre resultados financeiros, relatórios anuais e documentos institucionais.
               </p>
               <button
                 onClick={openCreate}
-                className="mt-10 h-14 px-10 rounded-2xl bg-brand-primary text-white text-[11px] font-black uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(0,173,232,0.4)] hover:scale-105 active:scale-95 transition-all italic"
+                className="mt-6 h-10 px-6 rounded-md bg-brand-primary text-white text-sm font-medium hover:brightness-110 transition-colors"
               >
                 Primeira Publicação
               </button>
@@ -339,37 +335,36 @@ export default function PublicationsPage() {
           {!loading && grouped.map(({ year, periods }) => (
             <div key={year} className="space-y-6">
               {/* Year Header */}
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-4 bg-white/2 px-8 h-12 rounded-2xl border border-white/5">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-brand-primary">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 bg-card px-6 h-10 rounded-md border border-border">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-400">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                   </svg>
-                  <span className="text-[13px] font-black text-white uppercase tracking-[0.2em] italic">{year}</span>
+                  <span className="text-sm font-bold text-white uppercase">{year}</span>
                 </div>
-                <div className="flex-1 h-px bg-white/5" />
-                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em] italic">
+                <div className="flex-1 h-px bg-muted" />
+                <span className="text-xs font-semibold text-zinc-500 uppercase">
                   {periods.reduce((sum, [, docs]) => sum + docs.length, 0)} documentos
                 </span>
               </div>
 
               {/* Period Groups */}
               {periods.map(([period, docs]) => (
-                <div key={period} className="bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[40px] radial-gradient-glass shadow-2xl overflow-hidden group/period relative">
-                  <div className="absolute -inset-20 bg-brand-primary/1 rounded-full blur-[80px] opacity-0 group-hover/period:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+                <div key={period} className="bg-background border border-border rounded-xl overflow-hidden group/period relative">
 
                   {/* Period Header */}
-                  <div className="px-10 py-6 border-b border-white/5 bg-white/1 flex items-center justify-between">
-                    <div className="flex items-center gap-5">
-                      <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  <div className="px-6 py-4 border-b border-border bg-card flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center text-zinc-400">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                       </div>
-                      <span className="text-[11px] font-black text-white uppercase tracking-[0.3em] italic">{period} {year}</span>
-                      <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em] italic">{docs.length} {docs.length === 1 ? "doc" : "docs"}</span>
+                      <span className="text-sm font-semibold text-white uppercase">{period} {year}</span>
+                      <span className="text-xs font-medium text-zinc-500">{docs.length} {docs.length === 1 ? "doc" : "docs"}</span>
                     </div>
                   </div>
 
                   {/* Documents List */}
-                  <div className="divide-y divide-white/5">
+                  <div className="divide-y divide-[#222222]">
                     {docs.map((doc) => {
                       const cat = CATEGORY_LABELS[(doc.category as string) || "outro"] || CATEGORY_LABELS["outro"];
                       const fileUrl = doc.file_url as string;
@@ -377,29 +372,29 @@ export default function PublicationsPage() {
                       const isFeatured = !!doc.featured;
 
                       return (
-                        <div key={doc.id as string} className="px-10 py-6 hover:bg-white/2 transition-all flex items-center justify-between group/doc relative overflow-hidden">
-                          <div className="flex items-center gap-6 flex-1 min-w-0">
+                        <div key={doc.id as string} className="px-6 py-4 hover:bg-card transition-colors flex items-center justify-between group/doc relative overflow-hidden">
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
                             {/* Category Icon */}
-                            <div className={`w-12 h-12 rounded-2xl bg-white/2 border border-white/5 flex items-center justify-center text-xl shrink-0 group-hover/doc:scale-110 transition-transform duration-500`}>
+                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-xl shrink-0 group-hover/doc:scale-110 transition-transform">
                               {cat.icon}
                             </div>
 
                             {/* Title & Meta */}
-                            <div className="flex flex-col gap-1.5 min-w-0">
-                              <div className="flex items-center gap-4">
-                                <h4 className="text-[13px] font-black text-white italic tracking-tighter uppercase truncate group-hover/doc:text-brand-primary transition-colors">{doc.title as string}</h4>
+                            <div className="flex flex-col gap-1 min-w-0">
+                              <div className="flex items-center gap-3">
+                                <h4 className="text-sm font-medium text-white truncate group-hover/doc:text-brand-primary transition-colors">{doc.title as string}</h4>
                                 {isFeatured && (
-                                  <span className="text-[8px] px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 font-black uppercase tracking-[0.3em] italic shrink-0">Destaque</span>
+                                  <span className="text-[10px] px-2 py-0.5 rounded border border-amber-500/20 bg-amber-500/10 text-amber-500 font-semibold uppercase">Destaque</span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-4">
-                                <span className={`text-[9px] font-black uppercase tracking-[0.2em] italic ${cat.color}`}>{cat.label}</span>
-                                <span className="w-1 h-1 bg-white/10 rounded-full" />
-                                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.2em] italic">
+                              <div className="flex items-center gap-3">
+                                <span className={`text-[10px] font-semibold uppercase ${cat.color}`}>{cat.label}</span>
+                                <span className="w-1 h-1 bg-muted rounded-full" />
+                                <span className="text-xs font-medium text-zinc-500">
                                   {doc.date ? new Date(doc.date as string).toLocaleDateString("pt-BR") : "—"}
                                 </span>
-                                <span className="w-1 h-1 bg-white/10 rounded-full" />
-                                <span className={`text-[9px] font-black uppercase tracking-[0.2em] italic ${isPublished ? "text-emerald-500" : "text-zinc-700"}`}>
+                                <span className="w-1 h-1 bg-muted rounded-full" />
+                                <span className={`text-[10px] font-bold uppercase ${isPublished ? "text-emerald-500" : "text-zinc-500"}`}>
                                   {isPublished ? "LIVE" : "DRAFT"}
                                 </span>
                               </div>
@@ -407,15 +402,15 @@ export default function PublicationsPage() {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex items-center gap-3 opacity-0 group-hover/doc:opacity-100 transition-all duration-500 shrink-0 ml-6">
+                          <div className="flex items-center gap-2 opacity-0 group-hover/doc:opacity-100 transition-opacity shrink-0 ml-4">
                             {/* Preview PDF */}
                             {fileUrl && (
                               <button
                                 onClick={() => setPreviewUrl(fileUrl)}
-                                className="h-10 px-5 rounded-xl border border-white/5 bg-white/2 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-brand-primary hover:border-brand-primary/20 transition-all italic flex items-center gap-2"
+                                className="h-8 px-3 rounded-md border border-border bg-card text-xs font-medium text-zinc-400 hover:text-brand-primary hover:border-brand-primary/20 transition-colors flex items-center gap-2"
                                 title="Preview"
                               >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                 Preview
                               </button>
                             )}
@@ -426,10 +421,10 @@ export default function PublicationsPage() {
                                 href={fileUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="h-10 w-10 rounded-xl border border-white/5 bg-white/2 flex items-center justify-center text-zinc-400 hover:text-emerald-400 hover:border-emerald-500/20 transition-all"
+                                className="h-8 w-8 rounded-md border border-border bg-card flex items-center justify-center text-zinc-400 hover:text-emerald-400 hover:border-emerald-500/20 transition-colors"
                                 title="Download"
                               >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                               </a>
                             )}
 
@@ -437,17 +432,17 @@ export default function PublicationsPage() {
                             <button
                               onClick={() => handleToggleStatus(doc)}
                               disabled={togglingId === (doc.id as string)}
-                              className={`h-10 w-10 rounded-xl border flex items-center justify-center transition-all active:scale-90 ${
+                              className={`h-8 w-8 rounded-md border flex items-center justify-center transition-colors ${
                                 isPublished
-                                  ? "border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10"
-                                  : "border-white/5 text-zinc-600 hover:text-white hover:bg-white/5"
+                                  ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20"
+                                  : "border-border bg-card text-zinc-400 hover:text-white"
                               }`}
                               title={isPublished ? "Despublicar" : "Publicar"}
                             >
                               {togglingId === (doc.id as string) ? (
-                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                               ) : (
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                   {isPublished ? <><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></> : <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></>}
                                 </svg>
                               )}
@@ -456,19 +451,19 @@ export default function PublicationsPage() {
                             {/* Edit */}
                             <button
                               onClick={() => openEdit(doc)}
-                              className="h-10 w-10 rounded-xl border border-white/5 bg-white/2 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all active:scale-90"
+                              className="h-8 w-8 rounded-md border border-border bg-card flex items-center justify-center text-zinc-400 hover:text-white hover:bg-muted transition-colors"
                               title="Editar"
                             >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
 
                             {/* Delete */}
                             <button
                               onClick={() => handleDelete(doc.id as string)}
-                              className="h-10 w-10 rounded-xl border border-transparent text-zinc-700 hover:text-red-500 hover:border-red-500/20 hover:bg-red-500/5 flex items-center justify-center transition-all active:scale-90"
+                              className="h-8 w-8 rounded-md border border-transparent text-zinc-600 hover:text-red-500 hover:border-red-500/20 hover:bg-red-500/10 flex items-center justify-center transition-colors"
                               title="Remover"
                             >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                             </button>
                           </div>
                         </div>
@@ -482,15 +477,15 @@ export default function PublicationsPage() {
 
           {/* Pagination */}
           {meta && meta.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 py-8">
+            <div className="flex items-center justify-center gap-2 py-8">
               {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map((p) => (
                 <button
                   key={p}
                   onClick={() => setPage(p)}
-                  className={`w-12 h-12 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all italic ${
+                  className={`w-10 h-10 rounded-md text-sm font-medium transition-colors ${
                     p === page
-                      ? "bg-brand-primary text-white shadow-[0_10px_30px_rgba(0,173,232,0.4)] scale-110"
-                      : "bg-white/2 border border-white/5 text-zinc-600 hover:text-white hover:bg-white/5"
+                      ? "bg-muted text-white"
+                      : "bg-card border border-border text-zinc-400 hover:text-white"
                   }`}
                 >
                   {p}
@@ -503,41 +498,41 @@ export default function PublicationsPage() {
 
       {/* ── PDF Preview Modal ── */}
       {previewUrl && (
-        <div className="fixed inset-0 z-200 flex items-center justify-center p-6 md:p-12 animate-in fade-in duration-500">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={() => setPreviewUrl(null)} />
-          <div className="relative z-10 w-full max-w-6xl h-[85vh] bg-black/60 backdrop-blur-3xl border border-white/5 rounded-[48px] shadow-[0_60px_120px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-500">
+        <div className="fixed inset-0 z-200 flex items-center justify-center p-6 md:p-12">
+          <div className="absolute inset-0 bg-background" onClick={() => setPreviewUrl(null)} />
+          <div className="relative z-10 w-full max-w-6xl h-[85vh] bg-background border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col">
             {/* Preview Header */}
-            <div className="flex items-center justify-between px-10 py-6 border-b border-white/5 bg-white/2 shrink-0">
-              <div className="flex items-center gap-5">
-                <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center text-zinc-400">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[12px] font-black text-white uppercase tracking-[0.2em] italic">Document Preview</span>
-                  <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] italic mt-1 truncate max-w-[400px]">{previewUrl}</span>
+                  <span className="text-sm font-bold text-white uppercase">Document Preview</span>
+                  <span className="text-xs font-medium text-zinc-500 mt-1 truncate max-w-md">{previewUrl}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <a
                   href={previewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="h-11 px-6 rounded-2xl border border-white/5 bg-white/2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-brand-primary hover:border-brand-primary/20 transition-all italic flex items-center gap-3"
+                  className="h-10 px-4 rounded-md border border-border bg-card text-xs font-semibold uppercase text-zinc-300 hover:bg-muted transition-colors flex items-center gap-2"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                   Abrir Externamente
                 </a>
                 <button
                   onClick={() => setPreviewUrl(null)}
-                  className="w-11 h-11 rounded-2xl border border-white/5 bg-white/2 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/10 transition-all active:scale-90"
+                  className="w-10 h-10 rounded-md border border-border bg-card flex items-center justify-center text-zinc-400 hover:text-white hover:bg-muted transition-colors"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
               </div>
             </div>
 
             {/* PDF Viewer */}
-            <div className="flex-1 bg-zinc-950 relative">
+            <div className="flex-1 bg-black relative">
               <iframe
                 src={previewUrl}
                 className="w-full h-full border-0"
@@ -550,21 +545,20 @@ export default function PublicationsPage() {
 
       {/* ── Entry Modal (Create/Edit) ── */}
       {modal && collection && (
-        <div className="animate-in fade-in zoom-in-95 duration-700 fixed inset-0 z-100 flex items-center justify-center p-6 md:p-12 overflow-hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={closeModal} />
-          <div className="relative z-110 w-full max-w-5xl max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-6 md:p-12 overflow-hidden">
+          <div className="absolute inset-0 bg-background" onClick={closeModal} />
+          <div className="relative z-110 w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
             {/* PDF Upload Helper (shown above modal for publications) */}
-            <div className="mb-4 flex items-center gap-4">
-              <label className={`group relative flex items-center gap-4 h-14 px-8 rounded-[22px] border border-dashed transition-all cursor-pointer italic overflow-hidden ${
+            <div className="mb-4 flex items-center gap-4 shrink-0">
+              <label className={`group relative flex items-center gap-3 h-12 px-6 rounded-md border border-dashed transition-colors cursor-pointer ${
                 uploadingPdf
                   ? "border-brand-primary/40 bg-brand-primary/10 text-brand-primary"
-                  : "border-white/10 bg-black/40 backdrop-blur-xl text-zinc-400 hover:text-white hover:border-white/20"
+                  : "border-border bg-card text-zinc-400 hover:text-white hover:border-border"
               }`}>
-                <div className="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="relative z-10">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="relative z-10">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
                 </svg>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] relative z-10">
+                <span className="text-xs font-semibold uppercase relative z-10">
                   {uploadingPdf ? "Enviando PDF..." : "Upload PDF ao R2"}
                 </span>
                 <input
@@ -576,24 +570,26 @@ export default function PublicationsPage() {
                 />
               </label>
               {!!form.file_url && (
-                <div className="flex items-center gap-3 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl px-6 h-14">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-emerald-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                  <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] italic truncate max-w-[300px]">Arquivo vinculado</span>
+                <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-4 h-12">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <span className="text-xs font-semibold text-emerald-500 uppercase truncate max-w-sm">Arquivo vinculado</span>
                 </div>
               )}
             </div>
 
-            <EntryModal
-              mode={modal}
-              collection={collection}
-              slug={SLUG}
-              locale={locale}
-              form={form}
-              saving={saving}
-              onFormChange={setForm}
-              onSave={handleSave}
-              onClose={closeModal}
-            />
+            <div className="flex-1 overflow-hidden rounded-xl border border-border bg-background">
+              <EntryModal
+                mode={modal}
+                collection={collection}
+                slug={SLUG}
+                locale={locale}
+                form={form}
+                saving={saving}
+                onFormChange={setForm}
+                onSave={handleSave}
+                onClose={closeModal}
+              />
+            </div>
           </div>
         </div>
       )}

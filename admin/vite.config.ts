@@ -11,8 +11,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1600,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-pdf': ['@react-pdf/renderer'],
+        manualChunks(id: string) {
+          if (id.includes('@react-pdf/renderer')) return 'react-pdf';
         },
       },
     },

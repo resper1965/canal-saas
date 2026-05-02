@@ -24,6 +24,8 @@ import { legacy } from './routes/legacy'
 import { aiWriter } from './routes/ai-writer'
 import { handleMcpRequest } from './mcp'
 import { MODEL_HEAVY } from './ai/models'
+import { hashApiKey, isValidOrigin } from './security'
+import { rateLimiter } from './middleware/rate-limit'
 
 export type Bindings = {
   DB: D1Database
@@ -34,11 +36,16 @@ export type Bindings = {
   BETTER_AUTH_SECRET: string
   BETTER_AUTH_URL: string
   ADMIN_SETUP_KEY: string
-  RESEND_API_KEY: string
+  RESEND_API_KEY?: string
+  GOOGLE_CLIENT_ID?: string
+  GOOGLE_CLIENT_SECRET?: string
   SLACK_WEBHOOK_URL?: string
   AGENT_DO: DurableObjectNamespace
   QUEUE: Queue
   ANALYTICS: any
+  ASSETS: Fetcher
+  SEND_EMAIL: any
+  EMAIL?: any
 }
 
 type Variables = {
@@ -68,6 +75,56 @@ app.use('*', async (c, next) => {
   }
 })
 
+// ── Rate Limiting (plan-based) ────────────────────────────────────
+const PLAN_LIMITS: Record<string, number> = { free: 20, pro: 100, enterprise: 999999 }
+
+app.use('/api/v1/*', async (c, next) => {
+  const tenantId = c.get('tenantId')
+  if (!tenantId) return next()
+
+  try {
+    const minute = Math.floor(Date.now() / 60000)
+    const key = `rl:${tenantId}:${minute}`
+    const current = await c.env.CANAL_KV.get(key)
+    const count = current ? parseInt(current, 10) : 0
+
+    // Resolve plan from org metadata (cached in KV)
+    let plan = 'free'
+    const planCacheKey = `plan:${tenantId}`
+    const cachedPlan = await c.env.CANAL_KV.get(planCacheKey)
+    if (cachedPlan) {
+      plan = cachedPlan
+    } else {
+      const org = await c.env.DB.prepare(
+        'SELECT metadata FROM organization WHERE id = ? LIMIT 1'
+      ).bind(tenantId).first<{ metadata: string }>()
+      if (org?.metadata) {
+        try { plan = JSON.parse(org.metadata).plan || 'free' } catch {}
+      }
+      await c.env.CANAL_KV.put(planCacheKey, plan, { expirationTtl: 300 })
+    }
+
+    const limit = PLAN_LIMITS[plan] || PLAN_LIMITS.free
+
+    if (count >= limit) {
+      return c.json({
+        error: 'Rate limit exceeded',
+        plan,
+        limit: `${limit} requests/minute`,
+        retryAfter: 60 - (Math.floor(Date.now() / 1000) % 60),
+      }, 429)
+    }
+
+    await c.env.CANAL_KV.put(key, String(count + 1), { expirationTtl: 120 })
+    c.header('X-RateLimit-Limit', String(limit))
+    c.header('X-RateLimit-Remaining', String(Math.max(0, limit - count - 1)))
+  } catch (err) {
+    console.error('[RateLimit] Error:', err)
+  }
+
+  return next()
+})
+
 // ── CORS & Security ───────────────────────────────────────────────
 app.use('/*', secureHeaders({
   contentSecurityPolicy: {
@@ -76,11 +133,11 @@ app.use('/*', secureHeaders({
     styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     fontSrc: ["'self'", "https://fonts.gstatic.com"],
     imgSrc: ["'self'", "data:", "blob:", "https://*.ness.com.br", "https://*.r2.dev"],
-    connectSrc: ["'self'", "https://api.resend.com", "https://canal.ness.com.br"],
+    connectSrc: ["'self'", "https://api.resend.com", "https://canal.bekaa.eu"],
     frameSrc: ["'none'"],
     objectSrc: ["'none'"],
     baseUri: ["'self'"],
-    formAction: ["'self'"],
+    formAction: ["'self'", "https://accounts.google.com"],
   },
   permissionsPolicy: {
     camera: [],
@@ -92,33 +149,163 @@ app.use('/*', secureHeaders({
   },
 }))
 app.use('/*', cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:8787',
-    'https://canal.ness.com.br',
-    'https://ness-site2026.pages.dev',
-    'https://ness.com.br',
-    'https://www.ness.com.br',
-    'https://forense.io',
-    'https://www.forense.io',
-    'https://trustness.com.br',
-    'https://www.trustness.com.br',
-  ],
-  allowHeaders: ['Content-Type', 'Authorization', 'x-setup-key', 'x-session-id', 'x-tenant-id'],
+  origin: async (origin, c) => {
+    if (!origin) return '*'
+    // Dev origins — always allowed
+    const devOrigins = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8787', 'http://localhost:5174']
+    if (devOrigins.includes(origin)) return origin
+
+    try {
+      // 1. KV cache lookup (5min TTL)
+      const cached = await c.env.CANAL_KV.get(`cors:${origin}`)
+      if (cached) return origin
+
+      // 2. D1 fallback — check tenant_domains
+      const hostname = new URL(origin).hostname
+      const row = await c.env.DB.prepare(
+        'SELECT tenant_id FROM tenant_domains WHERE domain = ? AND verified = 1 LIMIT 1'
+      ).bind(hostname).first<{ tenant_id: string }>()
+
+      if (row) {
+        // Cache for 5 minutes
+        c.executionCtx.waitUntil(
+          c.env.CANAL_KV.put(`cors:${origin}`, row.tenant_id, { expirationTtl: 300 })
+        )
+        return origin
+      }
+    } catch (e) {
+      console.error('[CORS] Dynamic lookup failed:', e)
+    }
+
+    // Deny unknown origins
+    return null
+  },
+  allowHeaders: ['Content-Type', 'Authorization', 'x-setup-key', 'x-session-id', 'x-tenant-id', 'x-api-key'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
 }))
+// ── OAuth Redirect (GET) - browser navigation ensures cookies are stored ──
+app.get('/api/oauth/google', async (c) => {
+  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
+  const fakeReq = new Request(`${c.env.BETTER_AUTH_URL}/api/auth/sign-in/social`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider: 'google', callbackURL: c.req.query('callbackURL') || '/' }),
+  })
+  const response = await auth.handler(fakeReq)
+  const body = await response.json() as { url?: string }
+  if (!body.url) return c.redirect('/login?error=oauth_init_failed')
+  
+  // Extract state from Google URL
+  const googleUrl = new URL(body.url)
+  const stateParam = googleUrl.searchParams.get('state') || ''
+  
+  // Get the raw set-cookie header (Workers may merge them)
+  const rawCookies = response.headers.get('set-cookie') || ''
+  
+  // Find cookie value: __Secure-better-auth.state=VALUE or better-auth.state=VALUE
+  const stateMatch = rawCookies.match(/(?:__Secure-)?better-auth\.state=([^;]+)/)
+  const stateCookieValue = stateMatch ? stateMatch[1] : ''
+  
+  // Save state→cookie mapping in KV (browser may not send cookie back)
+  if (stateParam && stateCookieValue) {
+    await c.env.CANAL_KV.put(`oauth-state:${stateParam}`, stateCookieValue, { expirationTtl: 300 })
+  }
+  
+  // Build redirect response with Set-Cookie headers
+  const redirectResponse = new Response(null, { status: 302, headers: { Location: body.url } })
+  // Split and re-add cookies individually  
+  for (const part of rawCookies.split(/,(?=\s*(?:__Secure-|better-auth\.))/)) {
+    if (part.trim()) redirectResponse.headers.append('Set-Cookie', part.trim())
+  }
+  return redirectResponse
+})
 
 // ── Better Auth ─────────────────────────────────────────────────
-app.all('/api/auth/*', (c) => {
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL)
-  return auth.handler(c.req.raw)
+app.all('/api/auth/*', async (c) => {
+  const isCallback = c.req.path.includes('/callback/')
+  try {
+    const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
+    
+    let reqToHandle = c.req.raw
+    
+    // Fix: If callback has no state cookie, inject it from KV
+    if (isCallback) {
+      const existingCookies = c.req.header('cookie') || ''
+      const hasStateCookie = existingCookies.includes('better-auth.state=') || existingCookies.includes('state=')
+      
+      if (!hasStateCookie) {
+        const stateParam = new URL(c.req.url).searchParams.get('state')
+        if (stateParam) {
+          // Read the stored cookie value from KV (saved during sign-in)
+          const storedValue = await c.env.CANAL_KV.get(`oauth-state:${stateParam}`)
+          if (storedValue) {
+            // Clone request with injected cookie
+            const newHeaders = new Headers(reqToHandle.headers)
+            const cookieName = c.env.BETTER_AUTH_URL?.startsWith('https') 
+              ? '__Secure-better-auth.state' 
+              : 'better-auth.state'
+            newHeaders.set('cookie', `${existingCookies}${existingCookies ? '; ' : ''}${cookieName}=${storedValue}`)
+            reqToHandle = new Request(reqToHandle.url, {
+              method: reqToHandle.method,
+              headers: newHeaders,
+              body: reqToHandle.body,
+            })
+          }
+        }
+      }
+    }
+    
+    const response = await auth.handler(reqToHandle)
+    
+    // Log callback results for debugging
+    if (isCallback) {
+      const status = response.status
+      if (status >= 400) {
+        const body = await response.clone().text()
+        await c.env.CANAL_KV.put('debug:auth:last_error', JSON.stringify({
+          time: new Date().toISOString(),
+          status,
+          body: body.substring(0, 1000),
+          url: c.req.url,
+        }), { expirationTtl: 3600 })
+        return c.redirect(`/login?error=${encodeURIComponent(body.substring(0, 200))}`)
+      }
+      // Even on success, log it
+      await c.env.CANAL_KV.put('debug:auth:last_success', JSON.stringify({
+        time: new Date().toISOString(),
+        status,
+        location: response.headers.get('location'),
+      }), { expirationTtl: 3600 }).catch(() => {})
+    }
+    
+    return response
+  } catch (err: any) {
+    const errMsg = err?.message || 'unknown'
+    const errStack = err?.stack || ''
+    if (isCallback) {
+      await c.env.CANAL_KV.put('debug:auth:last_error', JSON.stringify({
+        time: new Date().toISOString(),
+        error: errMsg,
+        stack: errStack.substring(0, 500),
+        url: c.req.url,
+      }), { expirationTtl: 3600 }).catch(() => {})
+      return c.redirect(`/login?error=${encodeURIComponent(errMsg)}`)
+    }
+    return c.json({ error: 'Auth error', message: errMsg }, 500)
+  }
+})
+
+// Debug endpoint to read last auth error (temp - remove after fixing)
+app.get('/api/debug/auth-error', async (c) => {
+  const error = await c.env.CANAL_KV.get('debug:auth:last_error')
+  const success = await c.env.CANAL_KV.get('debug:auth:last_success')
+  return c.json({ lastError: error ? JSON.parse(error) : null, lastSuccess: success ? JSON.parse(success) : null })
 })
 
 // ── Auth Middleware (SaaS / Tenant Isolator) ───────────────────
 async function requireSession(c: Context<{ Bindings: Bindings, Variables: Variables }>, next: () => Promise<void>) {
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL)
+  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
   if (!session) return c.json({ error: 'Unauthorized' }, 401)
   
@@ -135,7 +322,7 @@ async function requireAdminOrKey(c: Context<{ Bindings: Bindings, Variables: Var
     await next()
     return
   }
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL)
+  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
   
   // Se for AI Agent usando Token (MCP via Agent Auth)
   const agentSession = await auth.api.getAgentSession?.({ headers: c.req.raw.headers }).catch(() => null)
@@ -153,13 +340,66 @@ async function requireAdminOrKey(c: Context<{ Bindings: Bindings, Variables: Var
   await next()
 }
 
+// ── API Key Middleware (para sites externos consumirem API v1) ──
+async function resolveApiKeyOrSession(c: Context<{ Bindings: Bindings, Variables: Variables }>, next: () => Promise<void>) {
+  // 1. Tentar API Key no header Authorization: Bearer pk_xxx
+  const authHeader = c.req.header('Authorization')
+  if (authHeader?.startsWith('Bearer pk_')) {
+    const rawKey = authHeader.replace('Bearer ', '')
+    try {
+      // Hash the bearer token and lookup by hash (SHA-256)
+      const hashedKey = await hashApiKey(rawKey)
+      const row = await c.env.DB.prepare(
+        'SELECT id, metadata FROM apikey WHERE key = ? LIMIT 1'
+      ).bind(hashedKey).first<{ id: string; metadata: string }>()
+      
+      if (row) {
+        const meta = JSON.parse(row.metadata || '{}')
+        c.set('tenantId', meta.orgId || undefined)
+        await next()
+        return
+      }
+
+      // Fallback: check unhashed (migration compat for existing keys)
+      const legacyRow = await c.env.DB.prepare(
+        'SELECT id, metadata, key FROM apikey WHERE key = ? LIMIT 1'
+      ).bind(rawKey).first<{ id: string; metadata: string; key: string }>()
+      
+      if (legacyRow) {
+        const meta = JSON.parse(legacyRow.metadata || '{}')
+        c.set('tenantId', meta.orgId || undefined)
+        // Auto-migrate: hash the plaintext key in background
+        c.executionCtx.waitUntil(
+          c.env.DB.prepare('UPDATE apikey SET key = ? WHERE id = ?').bind(hashedKey, legacyRow.id).run()
+        )
+        await next()
+        return
+      }
+    } catch (e) {
+      console.error('[API Key] Lookup failed:', e)
+    }
+    return c.json({ error: 'Invalid API key' }, 401)
+  }
+
+  // 2. Fallback para session cookie (admin panel)
+  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
+  const session = await auth.api.getSession({ headers: c.req.raw.headers }).catch(() => null)
+  if (session) {
+    const tenantId = session?.session?.activeOrganizationId || undefined;
+    c.set('tenantId', tenantId);
+    c.set('session', session)
+  }
+  // Permite acesso público (leitura sem auth) — as rotas individuais decidem
+  await next()
+}
+
 // ── Root (A05: no info disclosure) ──────────────────────────────
 app.get('/', (c) => c.json({ name: 'Canal CMS', status: 'ok' }))
 
 
 // ── Agent Discovery (/.well-known) ──────────────────────────────
 app.all('/.well-known/agent-configuration', (c) => {
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL)
+  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
   return auth.handler(c.req.raw)
 })
 
@@ -321,7 +561,25 @@ app.post('/api/webhooks/omnichannel', async (c) => {
 
 
 // ── Mount: API v1 (CMS genérico) ────────────────────────────────
-// Leitura pública
+// Rate Limiting (sliding window via KV)
+app.use('/api/v1/*', rateLimiter())
+
+// CSRF Origin Check (mutations only)
+app.use('/api/v1/*', async (c, next) => {
+  const method = c.req.method
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
+    await next()
+    return
+  }
+  const origin = c.req.header('Origin')
+  if (origin && !isValidOrigin(origin)) {
+    return c.json({ error: 'Forbidden: invalid origin' }, 403)
+  }
+  await next()
+})
+
+// Resolve tenant via API key ou session (sites externos usam API key)
+app.use('/api/v1/*', resolveApiKeyOrSession)
 app.route('/api/v1', entries)
 app.route('/api/v1', marketing)
 // Upload requer sessão (P0: evitar abuso do R2)
@@ -361,7 +619,7 @@ app.post('/api/setup/admin', async (c) => {
     return c.json({ error: 'Forbidden' }, 403)
   }
 
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL)
+  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
   
   const parsed = setupAdminSchema.safeParse(await c.req.json())
   if (!parsed.success) return c.json({ error: 'Invalid payload', details: parsed.error.issues }, 400)
@@ -375,6 +633,50 @@ app.post('/api/setup/admin', async (c) => {
     return c.json({ success: true, user: result.user.email })
   } catch (err: any) {
     return c.json({ error: err?.message ?? 'Failed to create user' }, 400)
+  }
+})
+
+// ── Seed Organization (setup-key protected) ─────────────────────
+app.post('/api/setup/seed-org', async (c) => {
+  const key = c.req.header('x-setup-key')
+  if (!key || key !== c.env.ADMIN_SETUP_KEY) {
+    return c.json({ error: 'Forbidden' }, 403)
+  }
+
+  const body = await c.req.json() as { name: string; slug: string; plan?: string; userId: string }
+  if (!body.name || !body.slug || !body.userId) {
+    return c.json({ error: 'name, slug, and userId required' }, 400)
+  }
+
+  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, kv: c.env.CANAL_KV })
+
+  try {
+    // Create org via Better Auth API
+    const orgResult = await auth.api.createOrganization({
+      body: { name: body.name, slug: body.slug },
+      headers: new Headers(),
+    })
+
+    const orgId = (orgResult as any)?.id || (orgResult as any)?.organization?.id
+    if (!orgId) {
+      return c.json({ error: 'Failed to create org', debug: orgResult }, 500)
+    }
+
+    // Set plan metadata
+    const plan = body.plan || 'enterprise'
+    const orgMeta = JSON.stringify({ plan, usageLimit: 999999 })
+    await c.env.DB.prepare('UPDATE organization SET metadata = ? WHERE id = ?').bind(orgMeta, orgId).run()
+
+    // Add user as owner
+    await c.env.DB.prepare(
+      `INSERT INTO member (id, organizationId, userId, role, createdAt)
+       VALUES (?, ?, ?, 'owner', datetime('now'))
+       ON CONFLICT DO NOTHING`
+    ).bind(crypto.randomUUID(), orgId, body.userId).run()
+
+    return c.json({ success: true, orgId, name: body.name, slug: body.slug, plan })
+  } catch (err: any) {
+    return c.json({ error: err?.message ?? 'Failed to seed organization' }, 500)
   }
 })
 
@@ -410,6 +712,22 @@ app.route('/api/automation', automationRoutes)
 // SaaS Provisioning and Billing endpoints
 import { saasRoutes } from './routes/saas-onboarding'
 app.route('/api/saas', saasRoutes)
+
+// Self-Service Onboarding (public — no auth required)
+import { onboarding } from './routes/onboarding'
+app.route('/api/onboarding', onboarding)
+
+// ── Widget.js (público, cross-origin) ───────────────────────────
+import { widgetRoute } from './routes/widget'
+app.route('/', widgetRoute)
+
+// ── OpenAPI Documentation (público) ─────────────────────────────
+import { docs } from './routes/docs'
+app.route('/api', docs)
+
+// ── Developer Portal (público) ──────────────────────────────────
+import { developerPortal } from './routes/developer-portal'
+app.route('/api', developerPortal)
 
 // ── Mount: Admin Routes (modular, auth-protected) ────────────────
 import { admin } from './routes/admin'
@@ -547,10 +865,12 @@ app.post('/api/chat', async (c) => {
     text: [lastMessage]
   }) as { data: number[][] }
 
-  // 2. Buscar contexto no Vectorize
+  // 2. Buscar contexto no Vectorize (filtrado por tenant quando disponível)
+  const tenantFilter = c.get('tenantId')
   const vectorResults = await c.env.VECTORIZE.query(queryEmbedding.data[0], {
     topK: 3,
-    returnMetadata: 'all'
+    returnMetadata: 'all',
+    ...(tenantFilter ? { filter: { tenant_id: { $eq: tenantFilter } } } : {}),
   })
 
   const context = vectorResults.matches
@@ -574,13 +894,18 @@ app.post('/api/chat', async (c) => {
 
   const sessionId = c.req.header('x-session-id') || crypto.randomUUID()
   
-  // Forward to GabiAgent (Durable Object)
-  const id = c.env.AGENT_DO.idFromName("gabi_agent_" + sessionId);
+  // Forward to GabiAgent (Durable Object) — multi-tenant naming
+  const chatTenantId = c.get('tenantId') || 'public'
+  const id = c.env.AGENT_DO.idFromName(`gabi_agent_${chatTenantId}_${sessionId}`);
   const stub = c.env.AGENT_DO.get(id);
 
   const agentReq = new Request(c.req.url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-session-id": sessionId,
+      "x-tenant-id": chatTenantId,
+    },
     body: JSON.stringify({
       messages,
       locale,
@@ -610,6 +935,26 @@ app.get('/api/og', (c) => {
     }
   })
 })
+
+// ── SPA Fallback (client-side routing) ─────────────────────────
+// Non-API routes should serve index.html so React Router handles them
+app.notFound(async (c) => {
+  const path = c.req.path
+  // Don't fallback for API routes — let them 404 normally
+  if (path.startsWith('/api/') || path.startsWith('/widget')) {
+    return c.text('Not Found', 404)
+  }
+  // Serve index.html from ASSETS for SPA routes (login, onboarding, etc)
+  try {
+    const asset = await c.env.ASSETS.fetch(new Request(new URL('/', c.req.url)))
+    return new Response(asset.body, {
+      headers: { ...Object.fromEntries(asset.headers), 'content-type': 'text/html; charset=utf-8' }
+    })
+  } catch {
+    return c.text('Not Found', 404)
+  }
+})
+
 import { queueHandler } from './queue'
 import { cronHandler } from './cron'
 

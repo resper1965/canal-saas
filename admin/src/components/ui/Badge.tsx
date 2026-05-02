@@ -20,7 +20,7 @@ const VARIANT_STYLES: Record<BadgeVariant, string> = {
 export function Badge({ children, variant = "neutral", icon, className = "" }: BadgeProps) {
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-muted/30 text-[11px] font-medium transition-colors ${VARIANT_STYLES[variant]} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border bg-card text-xs font-medium transition-colors ${VARIANT_STYLES[variant]} ${className}`}
     >
       {icon && <span className="opacity-70" aria-hidden="true">{icon}</span>}
       {children}

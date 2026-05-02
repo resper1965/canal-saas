@@ -100,11 +100,13 @@ ${ragContext}
       try {
         // ALWAYS persist chat session for admin visibility (Relational Schema)
         const sessionId = request.headers.get("x-session-id") || `gabi-${Date.now()}`;
+        // Multi-tenant: resolve from DO name or header
+        const tenantId = request.headers.get("x-tenant-id") || 'public';
         
         // 1. Upsert session summary
         await this.env.DB.prepare(
-          "INSERT INTO chat_sessions (id, tenant_id, locale, turn_count, created_at, status) VALUES (?, 'ness', ?, ?, CURRENT_TIMESTAMP, 'active') ON CONFLICT(id) DO UPDATE SET turn_count = excluded.turn_count, ended_at = CURRENT_TIMESTAMP"
-        ).bind(sessionId, locale || 'pt', messages.length).run();
+          "INSERT INTO chat_sessions (id, tenant_id, locale, turn_count, created_at, status) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 'active') ON CONFLICT(id) DO UPDATE SET turn_count = excluded.turn_count, ended_at = CURRENT_TIMESTAMP"
+        ).bind(sessionId, tenantId, locale || 'pt', messages.length).run();
 
         // 2. Sync full message context (Naive re-insert for exact sequence state)
         await this.env.DB.prepare("DELETE FROM chat_messages WHERE session_id = ?").bind(sessionId).run();
@@ -158,7 +160,7 @@ NÃO retorne texto adicional nem decorações markdown. Se não houver dados cla
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    from: "Gabi <gabi@canal.ness.com.br>",
+                    from: "Gabi <gabi@canal.bekaa.eu>",
                     to: ["comercial@ness.com.br"],
                     subject: `[Gabi] Novo lead: ${data.name} — ${data.intent || "Contato"}`,
                     html: `
@@ -178,7 +180,7 @@ NÃO retorne texto adicional nem decorações markdown. Se não houver dados cla
                           ${chatlog}
                         </table>
 
-                        <p style="color:#aaa;font-size:11px;margin-top:24px;">canal.ness.com.br · ${new Date().toLocaleString("pt-BR")}</p>
+                        <p style="color:#aaa;font-size:11px;margin-top:24px;">canal.bekaa.eu · ${new Date().toLocaleString("pt-BR")}</p>
                       </div>
                     `,
                   }),

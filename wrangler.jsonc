@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "canal-saas-dev",
+	"name": "canal-saas",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-04-14",
 	"compatibility_flags": [
@@ -9,17 +9,18 @@
 	"assets": {
 		"directory": "./admin/dist",
 		"binding": "ASSETS",
-		"not_found_handling": "single-page-application"
+		"not_found_handling": "single-page-application",
+		"run_worker_first": ["/api/*"]
 	},
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "canal-saas-dev-db",
-			"database_id": "TODO_CREATE_NEW_D1"
+			"database_name": "canal-db",
+			"database_id": "bd79ce1a-6fd0-49ef-8d9f-40ea53717e0e"
 		}
 	],
 	"vars": {
-		"BETTER_AUTH_URL": "http://localhost:8787"
+		"BETTER_AUTH_URL": "https://canal.bekaa.eu"
 	},
 	"alias": {
 		"better-auth/adapters/kysely": "./node_modules/better-auth/dist/db/adapter-kysely.mjs"
@@ -27,7 +28,7 @@
 	"vectorize": [
 		{
 			"binding": "VECTORIZE",
-			"index_name": "canal-saas-dev-vectors"
+			"index_name": "canal-vectors"
 		}
 	],
 	"ai": {
@@ -36,19 +37,19 @@
 	"r2_buckets": [
 		{
 			"binding": "MEDIA",
-			"bucket_name": "canal-saas-dev-media"
+			"bucket_name": "canal-media"
 		}
 	],
 	"queues": {
 		"producers": [
 			{
 				"binding": "QUEUE",
-				"queue": "canal-saas-dev-queue"
+				"queue": "canal-saas-queue"
 			}
 		],
 		"consumers": [
 			{
-				"queue": "canal-saas-dev-queue",
+				"queue": "canal-saas-queue",
 				"max_batch_size": 10,
 				"max_retries": 3,
 				"max_batch_timeout": 5
@@ -79,13 +80,23 @@
 	"kv_namespaces": [
 		{
 			"binding": "CANAL_KV",
-			"id": "TODO_CREATE_NEW_KV"
+			"id": "b28950f237884a4aa47d103723dd09bf"
 		}
 	],
 	"analytics_engine_datasets": [
 		{
 			"binding": "ANALYTICS",
-			"dataset": "canal_saas_dev_metrics"
+			"dataset": "canal_saas_metrics"
+		}
+	],
+	"send_email": [
+		{
+			"name": "SEND_EMAIL"
+		}
+	],
+	"email_bindings": [
+		{
+			"name": "EMAIL"
 		}
 	]
 }

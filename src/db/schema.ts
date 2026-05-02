@@ -11,9 +11,21 @@ export const collections = sqliteTable('collections', {
   has_locale: integer('has_locale').notNull().default(1),
   has_slug: integer('has_slug').notNull().default(1),
   has_status: integer('has_status').notNull().default(1),
+  governance: text('governance').default('autonomous'),
   fields: text('fields').notNull().default('[]'),
   sort_order: integer('sort_order').default(0),
   created_at: text('created_at')
+});
+
+// ── SaaS: Tenant Domains (CORS dinâmico + custom domains) ───────
+
+export const tenant_domains = sqliteTable('tenant_domains', {
+  id: text('id').primaryKey(),
+  tenant_id: text('tenant_id').notNull(),
+  domain: text('domain').notNull().unique(),
+  verified: integer('verified').notNull().default(0),
+  verification_token: text('verification_token'),
+  created_at: text('created_at'),
 });
 
 export const entries = sqliteTable('entries', {
