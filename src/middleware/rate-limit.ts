@@ -77,7 +77,7 @@ export function rateLimiter(config: Partial<RateLimitConfig> = {}) {
       c.header("X-RateLimit-Remaining", String(limit - current - 1));
     } catch (e) {
       // KV error: allow through (fail-open for availability)
-      console.error("[RateLimit] KV error:", e);
+      // console.error("[RateLimit] KV error:", e);
     }
 
     await next();

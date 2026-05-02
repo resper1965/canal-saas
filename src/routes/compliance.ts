@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, desc, and, sql, count } from 'drizzle-orm'
 import { dsar_requests, whistleblower_cases, policies, consent_logs, audit_logs } from '../db/schema'
+import { DEFAULT_BRAND } from '../config'
 
 type Env = {
   Bindings: {
@@ -49,7 +50,7 @@ app.post('/dsar', async (c) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'dpo@ness.com.br',
+        from: DEFAULT_BRAND.dpo_email,
         to: body.email,
         subject: `[DSAR] Solicitação recebida — Protocolo ${id.substring(0, 8).toUpperCase()}`,
         html: `
@@ -64,7 +65,7 @@ app.post('/dsar', async (c) => {
       }),
     })
   } catch (e) {
-    console.error('[DSAR] Email error:', e)
+    // console.error('[DSAR] Email error:', e)
   }
 
   return c.json({ success: true, protocol: id.substring(0, 8).toUpperCase(), sla_deadline: deadline.toISOString() })

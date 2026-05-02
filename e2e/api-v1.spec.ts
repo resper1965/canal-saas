@@ -38,11 +38,13 @@ test.describe('Public Endpoints', () => {
     expect(spec.paths).toBeTruthy();
   });
 
-  test('GET /widget.js returns JavaScript or SPA', async ({ request }) => {
+  test('GET /widget.js returns JavaScript', async ({ request }) => {
     const res = await request.get(`${BASE}/widget.js`);
     expect(res.status()).toBe(200);
-    // In production, widget.js may be served as SPA HTML if run_worker_first doesn't match
-    // This is expected on Cloudflare Workers Assets with SPA fallback
+    const ct = res.headers()['content-type'];
+    expect(ct).toContain('javascript');
+    const body = await res.text();
+    expect(body).toContain('canal-chat');
   });
 
   test('GET /api/developers serves developer portal', async ({ request }) => {

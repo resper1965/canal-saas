@@ -42,7 +42,7 @@ legacy.get('/insights', async (c) => {
     ).bind(lang).all()
     return c.json(results)
   } catch (err) {
-    console.error('[legacy] /insights DB error:', err instanceof Error ? err.message : String(err))
+    // console.error('[legacy] /insights DB error:', err instanceof Error ? err.message : String(err))
     return c.json({ error: 'Service temporarily unavailable' }, 503)
   }
 })
@@ -68,7 +68,7 @@ legacy.get('/insights/:slug', async (c) => {
     if (!result) return c.json({ error: 'Not found' }, 404)
     return c.json(result)
   } catch (err) {
-    console.error('[legacy] /insights/:slug DB error:', err instanceof Error ? err.message : String(err))
+    // console.error('[legacy] /insights/:slug DB error:', err instanceof Error ? err.message : String(err))
     return c.json({ error: 'Service temporarily unavailable' }, 503)
   }
 })
@@ -94,7 +94,7 @@ legacy.get('/cases', async (c) => {
     ).bind(lang).all()
     return c.json(results)
   } catch (err) {
-    console.error('[legacy] /cases DB error:', err instanceof Error ? err.message : String(err))
+    // console.error('[legacy] /cases DB error:', err instanceof Error ? err.message : String(err))
     return c.json({ error: 'Service temporarily unavailable' }, 503)
   }
 })
@@ -121,7 +121,7 @@ legacy.get('/cases/:slug', async (c) => {
     if (!result) return c.json({ error: 'Not found' }, 404)
     return c.json(result)
   } catch (err) {
-    console.error('[legacy] /cases/:slug DB error:', err instanceof Error ? err.message : String(err))
+    // console.error('[legacy] /cases/:slug DB error:', err instanceof Error ? err.message : String(err))
     return c.json({ error: 'Service temporarily unavailable' }, 503)
   }
 })
@@ -149,7 +149,7 @@ legacy.get('/jobs', async (c) => {
     }))
     return c.json(items)
   } catch (err) {
-    console.error('[legacy] /jobs DB error:', err instanceof Error ? err.message : String(err))
+    // console.error('[legacy] /jobs DB error:', err instanceof Error ? err.message : String(err))
     return c.json({ error: 'Service temporarily unavailable' }, 503)
   }
 })
@@ -176,7 +176,7 @@ legacy.post('/newsletter', async (c) => {
     await db.insert(newsletter).values({ email })
     return c.json({ success: true })
   } catch (err) {
-    console.error('[security] newsletter error:', err instanceof Error ? err.message : String(err))
+    // console.error('[security] newsletter error:', err instanceof Error ? err.message : String(err))
     return c.json({ error: 'Failed' }, 500)
   }
 })
@@ -215,7 +215,7 @@ legacy.post('/submit-form', async (c) => {
 
     return c.json({ success: true, message: 'Formulário registrado.' })
   } catch (err) {
-    console.error('[security] form submission error:', err instanceof Error ? err.message : String(err))
+    // console.error('[security] form submission error:', err instanceof Error ? err.message : String(err))
     return c.json({ error: 'Failed to submit form' }, 500)
   }
 })

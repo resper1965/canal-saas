@@ -25,14 +25,9 @@ type Env = {
   }
 }
 
-const BRAND_CONFIG: Record<string, {
-  name: string; color: string; domain: string; logo: string; tagline: string
-}> = {
-  ness:      { name: 'ness.',  color: '#00E5A0', domain: 'ness.com.br',        logo: 'https://ness.com.br/logo-ness.png',        tagline: 'Tecnologia que conecta, protege e transforma.' },
-  aegis:     { name: 'Aegis',  color: '#00B4D8', domain: 'aegis.ness.com.br',  logo: 'https://aegis.ness.com.br/logo-aegis.png',  tagline: 'Segurança Cibernética Gerenciada' },
-  cavan:     { name: 'Cavan',  color: '#FF6B35', domain: 'cavan.ness.com.br',  logo: 'https://cavan.ness.com.br/logo-cavan.png',  tagline: 'Infraestrutura Inteligente' },
-  tne:       { name: 'TNE',    color: '#4361EE', domain: 'tne.ness.com.br',    logo: 'https://tne.ness.com.br/logo-tne.png',      tagline: 'Telecomunicações & Redes' },
-}
+import { SUB_BRANDS } from '../config'
+
+const BRAND_CONFIG = SUB_BRANDS
 
 const marketing = new Hono<Env>()
 

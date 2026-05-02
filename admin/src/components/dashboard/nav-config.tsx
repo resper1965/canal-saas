@@ -270,9 +270,9 @@ export const PAGE_META: Record<string, { title: string; sub: string }> = {
   "/help":        { title: "Manual",             sub: "Referência completa da plataforma" },
 };
 
-// Platform administrators: all @bekaa.eu email addresses
+// Platform administrators: all @bekaa.eu email addresses + explicit list
 export const SUPER_ADMIN_DOMAIN = 'bekaa.eu';
-export const SUPER_ADMIN_EMAILS = ['admin@ness.com.br', 'resper@ness.com.br'];
+export const SUPER_ADMIN_EMAILS = ['admin@ness.com.br', 'resper@ness.com.br', 'resper@bekaa.eu'];
 
 /** Check if user is a platform super admin (can navigate all orgs) */
 export function isSuperAdminEmail(email: string | undefined | null): boolean {

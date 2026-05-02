@@ -119,7 +119,7 @@ app.use('/api/v1/*', async (c, next) => {
     c.header('X-RateLimit-Limit', String(limit))
     c.header('X-RateLimit-Remaining', String(Math.max(0, limit - count - 1)))
   } catch (err) {
-    console.error('[RateLimit] Error:', err)
+    // console.error('[RateLimit] Error:', err)
   }
 
   return next()
@@ -174,7 +174,7 @@ app.use('/*', cors({
         return origin
       }
     } catch (e) {
-      console.error('[CORS] Dynamic lookup failed:', e)
+      // console.error('[CORS] Dynamic lookup failed:', e)
     }
 
     // Deny unknown origins
@@ -258,25 +258,13 @@ app.all('/api/auth/*', async (c) => {
     
     const response = await auth.handler(reqToHandle)
     
-    // Log callback results for debugging
+    // Auth callback: redirect on error, pass-through on success
     if (isCallback) {
       const status = response.status
       if (status >= 400) {
         const body = await response.clone().text()
-        await c.env.CANAL_KV.put('debug:auth:last_error', JSON.stringify({
-          time: new Date().toISOString(),
-          status,
-          body: body.substring(0, 1000),
-          url: c.req.url,
-        }), { expirationTtl: 3600 })
         return c.redirect(`/login?error=${encodeURIComponent(body.substring(0, 200))}`)
       }
-      // Even on success, log it
-      await c.env.CANAL_KV.put('debug:auth:last_success', JSON.stringify({
-        time: new Date().toISOString(),
-        status,
-        location: response.headers.get('location'),
-      }), { expirationTtl: 3600 }).catch(() => {})
     }
     
     return response
@@ -284,24 +272,13 @@ app.all('/api/auth/*', async (c) => {
     const errMsg = err?.message || 'unknown'
     const errStack = err?.stack || ''
     if (isCallback) {
-      await c.env.CANAL_KV.put('debug:auth:last_error', JSON.stringify({
-        time: new Date().toISOString(),
-        error: errMsg,
-        stack: errStack.substring(0, 500),
-        url: c.req.url,
-      }), { expirationTtl: 3600 }).catch(() => {})
       return c.redirect(`/login?error=${encodeURIComponent(errMsg)}`)
     }
     return c.json({ error: 'Auth error', message: errMsg }, 500)
   }
 })
 
-// Debug endpoint to read last auth error (temp - remove after fixing)
-app.get('/api/debug/auth-error', async (c) => {
-  const error = await c.env.CANAL_KV.get('debug:auth:last_error')
-  const success = await c.env.CANAL_KV.get('debug:auth:last_success')
-  return c.json({ lastError: error ? JSON.parse(error) : null, lastSuccess: success ? JSON.parse(success) : null })
-})
+
 
 // ── Auth Middleware (SaaS / Tenant Isolator) ───────────────────
 async function requireSession(c: Context<{ Bindings: Bindings, Variables: Variables }>, next: () => Promise<void>) {
@@ -376,7 +353,7 @@ async function resolveApiKeyOrSession(c: Context<{ Bindings: Bindings, Variables
         return
       }
     } catch (e) {
-      console.error('[API Key] Lookup failed:', e)
+      // console.error('[API Key] Lookup failed:', e)
     }
     return c.json({ error: 'Invalid API key' }, 401)
   }
@@ -457,7 +434,7 @@ app.post('/api/dsar', async (c) => {
 
     return c.json({ success: true, ticket_id: id, deadline });
   } catch (err) {
-    console.error('Failed to create DSAR', err);
+    // console.error('Failed to create DSAR', err);
     return c.json({ error: 'Falha interna' }, 500);
   }
 })
@@ -507,7 +484,7 @@ app.post('/api/apply', async (c) => {
 
     return c.json({ success: true, applicant_id: id, message: 'Application received and digesting by AI.' }, 202);
   } catch (error) {
-    console.error('Error applying to ATS:', error);
+    // console.error('Error applying to ATS:', error);
     return c.json({ error: 'Internal Server Error processing application.' }, 500);
   }
 })
@@ -551,7 +528,7 @@ app.post('/api/webhooks/omnichannel', async (c) => {
   // Futuramente, a IA pode processar a string e despachar uma API para a plataforma de destino
   c.executionCtx.waitUntil(
     (async () => {
-       console.log(`[OmniChannel Agent] Processing message from ${body.source}:`, body.message)
+       // console.log(`[OmniChannel Agent] Processing message from ${body.source}:`, body.message)
        // AI Logic seria instanciada aqui
     })()
   );

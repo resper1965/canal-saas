@@ -38,7 +38,7 @@ export async function sendEmail(
       });
       return { success: true };
     } catch (e: any) {
-      console.error("[email:EMAIL] Failed:", e.message);
+      // console.error("[email:EMAIL] Failed:", e.message);
       // Fall through to legacy
     }
   }
@@ -60,12 +60,12 @@ export async function sendEmail(
       await env.SEND_EMAIL.send(message);
       return { success: true };
     } catch (e: any) {
-      console.error("[email:SEND_EMAIL] Failed:", e.message);
+      // console.error("[email:SEND_EMAIL] Failed:", e.message);
     }
   }
 
   // ── Fallback: log only ─────────────────────────────────────
-  console.log(`[email:noop] Would send to=${to} subject="${subject}"`);
+  // console.log(`[email:noop] Would send to=${to} subject="${subject}"`);
   return { success: false, error: "No email binding available" };
 }
 

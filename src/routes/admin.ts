@@ -228,7 +228,7 @@ admin.post('/domains/:id/verify', async (c) => {
       }
     }
   } catch (err) {
-    console.error('[DNS Verify] DoH lookup failed:', err)
+    // console.error('[DNS Verify] DoH lookup failed:', err)
     // Don't fail hard — inform the user
   }
 
@@ -691,7 +691,7 @@ admin.post('/knowledge-base', async (c) => {
     })
   } else {
     // Fallback if queue not bound (local dev without queue simulator sometimes)
-    console.warn('Queue not bound, skipping vectorization.')
+    // console.warn('Queue not bound, skipping vectorization.')
   }
 
   return c.json({ success: true, id })
