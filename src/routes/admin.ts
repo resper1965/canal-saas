@@ -11,6 +11,7 @@ import { drizzle } from 'drizzle-orm/d1'
 import { eq, sql, like, desc, and } from 'drizzle-orm'
 import * as schema from '../db/schema'
 import { hashApiKey } from '../security'
+import { safeParse, CreateApiKeySchema, CreateDomainSchema, UpdateStatusSchema, AddSubscriberSchema, SendNewsletterSchema, UpdateAiSettingsSchema, ForwardMessageSchema, CreateKnowledgeBaseSchema, UpdateOrgSchema } from '../schemas'
 import type { Bindings } from '../index'
 
 type Variables = {
@@ -50,10 +51,11 @@ admin.get('/organizations', async (c) => {
 admin.patch('/organizations/:id', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
-  const body = await c.req.json()
+  const parsed = safeParse(UpdateOrgSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
   const db = getDb(c)
   await db.update(schema.organization)
-    .set({ metadata: JSON.stringify(body.metadata || {}) })
+    .set({ metadata: JSON.stringify(parsed.data.metadata || {}) })
     .where(eq(schema.organization.id, id))
   return c.json({ success: true })
 })
@@ -106,8 +108,9 @@ admin.get('/api-keys/:orgId', async (c) => {
 
 admin.post('/api-keys', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
-  const { name, orgId } = await c.req.json() as { name: string; orgId: string }
-  if (!name || !orgId) return c.json({ error: 'Name and orgId required' }, 400)
+  const parsed = safeParse(CreateApiKeySchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const { name, orgId } = parsed.data
 
   const id = crypto.randomUUID()
   const rawKey = `pk_${crypto.randomUUID().replace(/-/g, '')}`
@@ -156,8 +159,9 @@ admin.post('/domains', async (c) => {
   const tenantId = c.get('tenantId')
   if (!tenantId) return c.json({ error: 'No active organization' }, 400)
 
-  const { domain } = await c.req.json() as { domain: string }
-  if (!domain) return c.json({ error: 'Domain is required' }, 400)
+  const parsed = safeParse(CreateDomainSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const { domain } = parsed.data
 
   // Clean domain (remove protocol/path)
   const cleanDomain = domain.replace(/^https?:\/\//, '').split('/')[0].toLowerCase()
@@ -280,7 +284,7 @@ admin.get('/applicants', async (c) => {
 admin.patch('/applicants/:id', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
-  const { status } = await c.req.json() as { status: string }
+  const { status } = UpdateStatusSchema.parse(await c.req.json())
   const db = getDb(c)
   await db.update(schema.applicants)
     .set({ status })
@@ -326,7 +330,7 @@ admin.get('/leads', async (c) => {
 admin.patch('/leads/:id', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const id = parseInt(c.req.param('id'), 10)
-  const { status } = await c.req.json() as { status: string }
+  const { status } = UpdateStatusSchema.parse(await c.req.json())
   const db = getDb(c)
   await db.update(schema.leads)
     .set({ status, updated_at: new Date().toISOString() })
@@ -405,8 +409,9 @@ admin.get('/newsletter-subscribers', async (c) => {
 
 admin.post('/newsletter-subscribers', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
-  const { email } = await c.req.json() as { email: string }
-  if (!email || !email.includes('@')) return c.json({ error: 'Invalid email' }, 400)
+  const parsed = safeParse(AddSubscriberSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const { email } = parsed.data
 
   const db = getDb(c)
   const existing = await db.select({ id: schema.newsletter.id })
@@ -430,8 +435,9 @@ admin.delete('/newsletter-subscribers/:id', async (c) => {
 admin.post('/newsletters/send', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
 
-  const { subject, preheader, body } = await c.req.json() as { subject: string; preheader: string; body: string }
-  if (!subject || !body) return c.json({ error: 'Subject and body required' }, 400)
+  const parsed = safeParse(SendNewsletterSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const { subject, preheader, body } = parsed.data
 
   const db = getDb(c)
   const subs = await db.select({ email: schema.newsletter.email }).from(schema.newsletter)
@@ -536,15 +542,9 @@ admin.put('/ai-settings', async (c) => {
   const tenantId = c.get('tenantId') || 'ness'
   const db = getDb(c)
   
-  const payload = await c.req.json() as {
-    enabled?: boolean;
-    bot_name?: string;
-    avatar_url?: string;
-    welcome_message?: string;
-    system_prompt?: string;
-    theme_color?: string;
-    max_turns?: number;
-  }
+  const parsed = safeParse(UpdateAiSettingsSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const payload = parsed.data
 
   const existing = await db.select({ id: schema.chatbot_config.id }).from(schema.chatbot_config).where(eq(schema.chatbot_config.tenant_id, tenantId)).limit(1)
   
@@ -609,8 +609,9 @@ admin.get('/communications', async (c) => {
 admin.post('/communications/forward', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const session = c.get('session')
-  const { messageId, messageType, to } = await c.req.json() as { messageId: number; messageType: string; to: string }
-  if (!to || !to.includes('@')) return c.json({ error: 'Invalid email' }, 400)
+  const parsed = safeParse(ForwardMessageSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const { messageId, messageType, to } = parsed.data
 
   const db = getDb(c)
   let content = ''
@@ -659,9 +660,9 @@ admin.post('/knowledge-base', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = c.get('tenantId') || 'ness'
   const session = c.get('session')
-  const { title, text_payload } = await c.req.json() as { title: string; text_payload: string }
-  
-  if (!title || !text_payload) return c.json({ error: 'Missing title or text payload' }, 400)
+  const parsed = safeParse(CreateKnowledgeBaseSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const { title, text_payload } = parsed.data
 
   const id = crypto.randomUUID()
   const r2_key = `knowledge-base/${tenantId}/${id}.txt`

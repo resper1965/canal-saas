@@ -57,6 +57,15 @@ export type Variables = {
 
 const app = new Hono<{ Bindings: Bindings, Variables: Variables }>()
 
+// ── Global Error Handler (catches ZodError from .parse()) ─────────
+app.onError((err, c) => {
+  if (err.name === 'ZodError') {
+    const issues = (err as any).issues?.map((i: any) => `${i.path.join('.')}: ${i.message}`).join('; ') || 'Invalid input'
+    return c.json({ error: issues }, 400)
+  }
+  return c.json({ error: 'Internal Server Error' }, 500)
+})
+
 // ── Observability & Telemetry (Fase 6) ────────────────────────────
 app.use('*', async (c, next) => {
   const start = Date.now()

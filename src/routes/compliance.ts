@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/d1'
 import { eq, desc, and, sql, count } from 'drizzle-orm'
 import { dsar_requests, whistleblower_cases, policies, consent_logs, audit_logs } from '../db/schema'
 import { DEFAULT_BRAND } from '../config'
+import { safeParse, CreateDsarSchema, UpdateDsarSchema, CreateWhistleblowerSchema, UpdateWhistleblowerSchema, CreatePolicySchema, UpdatePolicySchema, LogConsentSchema } from '../schemas'
 
 type Env = {
   Bindings: {
@@ -19,7 +20,9 @@ const app = new Hono<Env>()
 // POST /api/dsar — Public submission
 app.post('/dsar', async (c) => {
   const db = drizzle(c.env.DB)
-  const body = await c.req.json()
+  const parsed = safeParse(CreateDsarSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const body = parsed.data
   const now = new Date().toISOString()
   const id = crypto.randomUUID()
 
@@ -29,11 +32,11 @@ app.post('/dsar', async (c) => {
 
   await db.insert(dsar_requests).values({
     id,
-    tenant_id: body.tenant_id || 'ness',
+    tenant_id: body.tenant_id,
     requester_name: body.name,
     requester_email: body.email,
     requester_document: body.document,
-    request_type: body.type, // access, deletion, correction, portability
+    request_type: body.type,
     description: body.description,
     status: 'received',
     deadline: deadline.toISOString(),
@@ -85,7 +88,9 @@ app.get('/admin/dsar', async (c) => {
 app.put('/admin/dsar/:id', async (c) => {
   const db = drizzle(c.env.DB)
   const id = c.req.param('id')
-  const body = await c.req.json()
+  const parsed = safeParse(UpdateDsarSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const body = parsed.data
   const now = new Date().toISOString()
 
   await db.update(dsar_requests).set({
@@ -147,7 +152,9 @@ function generateCaseCode(): string {
 // POST /api/whistleblower — Anonymous public submission
 app.post('/whistleblower', async (c) => {
   const db = drizzle(c.env.DB)
-  const body = await c.req.json()
+  const parsed = safeParse(CreateWhistleblowerSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const body = parsed.data
   const now = new Date().toISOString()
   const id = crypto.randomUUID()
   const caseCode = generateCaseCode()
@@ -256,7 +263,9 @@ app.get('/admin/whistleblower', async (c) => {
 app.put('/admin/whistleblower/:id', async (c) => {
   const db = drizzle(c.env.DB)
   const id = c.req.param('id')
-  const body = await c.req.json()
+  const parsed = safeParse(UpdateWhistleblowerSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const body = parsed.data
 
   await db.update(whistleblower_cases).set({
     status: body.status,
@@ -302,19 +311,21 @@ app.get('/admin/policies', async (c) => {
 // POST /api/admin/policies — Create
 app.post('/admin/policies', async (c) => {
   const db = drizzle(c.env.DB)
-  const body = await c.req.json()
+  const parsed = safeParse(CreatePolicySchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const body = parsed.data
   const now = new Date().toISOString()
   const id = crypto.randomUUID()
 
   await db.insert(policies).values({
     id,
-    tenant_id: body.tenant_id || 'ness',
+    tenant_id: body.tenant_id,
     type: body.type,
-    locale: body.locale || 'pt',
+    locale: body.locale,
     title: body.title,
     body_md: body.body_md,
-    version: body.version || 1,
-    status: body.status || 'draft',
+    version: body.version,
+    status: body.status,
     effective_date: body.effective_date,
     created_by: body.created_by,
     created_at: now,
@@ -328,7 +339,9 @@ app.post('/admin/policies', async (c) => {
 app.put('/admin/policies/:id', async (c) => {
   const db = drizzle(c.env.DB)
   const id = c.req.param('id')
-  const body = await c.req.json()
+  const parsed = safeParse(UpdatePolicySchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const body = parsed.data
   const now = new Date().toISOString()
 
   await db.update(policies).set({
@@ -378,14 +391,16 @@ app.post('/admin/policies/:id/publish', async (c) => {
 // POST /api/consent — Public
 app.post('/consent', async (c) => {
   const db = drizzle(c.env.DB)
-  const body = await c.req.json()
+  const parsed = safeParse(LogConsentSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const body = parsed.data
 
   await db.insert(consent_logs).values({
-    tenant_id: body.tenant_id || 'ness',
+    tenant_id: body.tenant_id,
     user_identifier: body.user_id || body.fingerprint,
     policy_id: body.policy_id,
     policy_version: body.policy_version,
-    action: body.action,  // 'accepted', 'rejected', 'withdrawn'
+    action: body.action,
     ip_address: c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for'),
     user_agent: c.req.header('user-agent'),
     created_at: new Date().toISOString(),
