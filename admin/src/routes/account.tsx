@@ -57,7 +57,7 @@ export default function AccountSettingsPage() {
   const [linkedAccounts, setLinkedAccounts] = useState<any[]>([]);
   React.useEffect(() => {
     authClient.listAccounts().then((res) => {
-      if (res.data) setLinkedAccounts(res.data.filter((a: any) => a.providerId !== 'credential'));
+      if (res.data) setLinkedAccounts(res.data.filter((a: Record<string, unknown>) => a.providerId !== 'credential'));
     });
   }, []);
 

@@ -144,7 +144,7 @@ export async function enforceGovernance(
           reason: 'AI heuristic marked content as potentially sensitive. Requires human review.',
         }
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.warn('[Governance] AI fallback failed, continuing to auto-publish if regex passed:', e.message);
     }
   }

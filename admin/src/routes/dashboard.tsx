@@ -59,7 +59,7 @@ export default function DashboardLayout() {
 
   const isSuperAdmin = session?.user?.role === 'admin' || isSuperAdminEmail(session?.user?.email);
   const members = (activeOrg as any)?.members || [];
-  const myMembership = members.find((m: any) => m.userId === session?.user?.id || m.user?.email === session?.user?.email);
+  const myMembership = members.find((m: Record<string, unknown>) => m.userId === session?.user?.id || m.user?.email === session?.user?.email);
   const myRole = myMembership?.role || "member";
 
   const sysAdminRoutes = ['/organizations', '/users'];

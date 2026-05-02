@@ -44,7 +44,7 @@ export default function OrganizationsPage() {
       } else {
         setOrgs((req.data as Organization[]) || []);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setErrorMsg(err.message || "Erro de conexão ao buscar organizações");
     } finally {
       setLoading(false);
@@ -65,7 +65,7 @@ export default function OrganizationsPage() {
       } else {
         alert("Erro ao atualizar plano.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       alert("Erro: " + err.message);
     }
   };
@@ -84,7 +84,7 @@ export default function OrganizationsPage() {
       } else {
         alert("Erro ao excluir.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       alert("Erro: " + err.message);
     }
   };
@@ -150,7 +150,7 @@ export default function OrganizationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {organizations.map((o: any) => {
+                {organizations.map((o: Record<string, unknown>) => {
                   let meta = o.metadata || {};
                   if (typeof meta === "string") {
                     try { meta = JSON.parse(meta); } catch(e){}

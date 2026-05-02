@@ -37,7 +37,7 @@ export async function sendEmail(
         ...(text ? { text } : {}),
       });
       return { success: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       // console.error("[email:EMAIL] Failed:", e.message);
       // Fall through to legacy
     }
@@ -59,7 +59,7 @@ export async function sendEmail(
       const message = new EmailMessage(from.email, to, msg.asRaw());
       await env.SEND_EMAIL.send(message);
       return { success: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       // console.error("[email:SEND_EMAIL] Failed:", e.message);
     }
   }

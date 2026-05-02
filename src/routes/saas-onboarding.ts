@@ -17,7 +17,7 @@ import type { Bindings } from '../index'
 
 type Variables = {
   tenantId?: string
-  session?: any
+  session?: { user: { id: string; email: string }; session: { activeOrganizationId?: string } }
 }
 
 type BillingEnv = { Bindings: Bindings & { STRIPE_SECRET_KEY?: string; STRIPE_WEBHOOK_SECRET?: string }; Variables: Variables }
@@ -55,7 +55,7 @@ async function stripeRequest(
 
 // ── Checkout Session ─────────────────────────────────────────────
 saasRoutes.post('/billing/checkout', async (c) => {
-  const stripeKey = (c.env as any).STRIPE_SECRET_KEY
+  const stripeKey = c.env.STRIPE_SECRET_KEY
   if (!stripeKey) {
     // Fallback to mock if Stripe not configured
     const data = await c.req.json().catch(() => ({}))
@@ -115,8 +115,8 @@ saasRoutes.post('/billing/checkout', async (c) => {
 
 // ── Webhook Handler ─────────────────────────────────────────────
 saasRoutes.post('/billing/webhook', async (c) => {
-  const stripeKey = (c.env as any).STRIPE_SECRET_KEY
-  const webhookSecret = (c.env as any).STRIPE_WEBHOOK_SECRET
+  const stripeKey = c.env.STRIPE_SECRET_KEY
+  const webhookSecret = c.env.STRIPE_WEBHOOK_SECRET
   
   if (!stripeKey) {
     return c.json({ received: true, mock: true })
@@ -129,7 +129,7 @@ saasRoutes.post('/billing/webhook', async (c) => {
   // For MVP, we verify the event by re-fetching from Stripe API.
   // In production, implement HMAC-SHA256 verification.
 
-  let event: any
+  let event: { type: string; data: { object: Record<string, unknown> } }
   try {
     event = JSON.parse(rawBody)
   } catch {
@@ -183,7 +183,7 @@ saasRoutes.post('/billing/webhook', async (c) => {
       ).bind(`%${customerId}%`).all()
 
       for (const org of orgs.results || []) {
-        const meta = JSON.parse((org as any).metadata || '{}')
+        const meta = JSON.parse((org as Record<string, unknown>).metadata || '{}')
         meta.subscriptionActive = isActive
         if (!isActive) {
           meta.plan = 'free'
@@ -191,7 +191,7 @@ saasRoutes.post('/billing/webhook', async (c) => {
         }
         await c.env.DB.prepare(
           'UPDATE organization SET metadata = ? WHERE id = ?'
-        ).bind(JSON.stringify(meta), (org as any).id).run()
+        ).bind(JSON.stringify(meta), (org as Record<string, unknown>).id).run()
       }
       break
     }
@@ -209,7 +209,7 @@ saasRoutes.post('/billing/webhook', async (c) => {
 
 // ── Customer Portal ─────────────────────────────────────────────
 saasRoutes.get('/billing/portal', async (c) => {
-  const stripeKey = (c.env as any).STRIPE_SECRET_KEY
+  const stripeKey = c.env.STRIPE_SECRET_KEY
   const tenantId = c.req.query('tenantId')
 
   if (!tenantId) return c.json({ error: 'tenantId required' }, 400)

@@ -92,7 +92,7 @@ export default function BrandbookHub() {
           </div>
         ) : (
           <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-3">
-            {colors.map((color: any) => (
+            {colors.map((color: Record<string, unknown>) => (
               <div
                 key={color.id}
                 className="group bg-card border border-border rounded-xl p-3 hover:border-border transition-colors cursor-pointer"
@@ -123,7 +123,7 @@ export default function BrandbookHub() {
                </div>
             ) : (
                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {logos.map((logo: any) => <LogoCard key={logo.id} logo={logo} />)}
+                  {logos.map((logo: Record<string, unknown>) => <LogoCard key={logo.id} logo={logo} />)}
                </div>
             )}
          </div>
@@ -140,7 +140,7 @@ export default function BrandbookHub() {
                      <span className="text-xs text-zinc-600">Fontes do sistema em uso</span>
                   </div>
                ) : (
-                  typography.map((font: any) => (
+                  typography.map((font: Record<string, unknown>) => (
                     <div key={font.id} className="bg-card border border-border rounded-xl p-6 hover:border-border transition-colors">
                       <div className="flex items-center justify-between mb-4">
                          <div className="flex items-center gap-3">

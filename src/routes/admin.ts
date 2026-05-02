@@ -180,8 +180,8 @@ admin.post('/domains', async (c) => {
       verification_token: token,
       created_at: new Date().toISOString(),
     })
-  } catch (e: any) {
-    if (e.message?.includes('UNIQUE')) return c.json({ error: 'Domain already registered' }, 409)
+  } catch (e: unknown) {
+    if (e instanceof Error ? e.message : String(e)?.includes('UNIQUE')) return c.json({ error: 'Domain already registered' }, 409)
     throw e
   }
 
@@ -765,7 +765,7 @@ admin.get('/chat-sessions/export', async (c) => {
   `).bind(tenantId).all()
 
   const header = 'Session ID,Data,Feedback,Remetente,Mensagem\n'
-  const csv = rows.results.map((r: any) => {
+  const csv = rows.results.map((r: Record<string, unknown>) => {
     // Sanitização super básica para CSV
     const txt = String(r.content).replace(/"/g, '""').replace(/\n/g, ' ')
     return `"${r.id}","${r.created_at}","${r.csat_score || ''}","${r.role}","${txt}"`

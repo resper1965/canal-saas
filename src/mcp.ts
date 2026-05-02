@@ -45,7 +45,7 @@ server.tool(
           fields: c.fields.map(f => f.name),
         })), null, 2) }]
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       return { content: [{ type: "text", text: `Erro: ${e.message}` }] }
     }
   }
@@ -91,7 +91,7 @@ server.tool(
       return {
         content: [{ type: "text", text: JSON.stringify(parsed, null, 2) }]
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       return {
         content: [{ type: "text", text: `Error fetching entries: ${err.message}` }]
       }
@@ -155,7 +155,7 @@ server.tool(
       return {
         content: [{ type: "text", text: `${statusEmoji} Criado com sucesso.\nID: ${id}\nStatus: ${governance.status}\nGovernança: ${governance.decision}\nRazão: ${governance.reason}` }]
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       return {
         content: [{ type: "text", text: `Erro: ${err.message}` }]
       }
@@ -230,7 +230,7 @@ server.tool(
       return {
         content: [{ type: "text", text: `${statusEmoji} Atualizado.\nID: ${args.id}\nStatus: ${governance.status}\nGovernança: ${governance.decision}\nRazão: ${governance.reason}` }]
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       return {
         content: [{ type: "text", text: `Erro ao atualizar: ${err.message}` }]
       }
@@ -290,7 +290,7 @@ server.tool(
       return {
         content: [{ type: "text", text: `✅ Deletado com sucesso. ID: ${args.id}` }]
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       return {
         content: [{ type: "text", text: `Erro ao deletar: ${err.message}` }]
       }

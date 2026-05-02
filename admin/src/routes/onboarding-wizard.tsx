@@ -47,7 +47,7 @@ export default function OnboardingWizard() {
       }
       setResult(data);
       setStep(4);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(e.message || 'Erro de conexão');
     } finally {
       setLoading(false);

@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 type Env = {
   Bindings: {
-    AI: any
+    AI: Ai
     QUEUE: Queue
   }
 }
@@ -59,8 +59,8 @@ Escreva um texto claro, evitando jargões excessivos, focando na objetividade. F
       jobId, 
       message: 'Draft request accepted. It will be processed in the background.' 
     }, 202)
-  } catch (err: any) {
-    return c.json({ error: 'Erro ao despachar rascunho para fila', details: err.message }, 500)
+  } catch (err: unknown) {
+    return c.json({ error: 'Erro ao despachar rascunho para fila', details: err instanceof Error ? err.message : String(err) }, 500)
   }
 })
 

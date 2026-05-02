@@ -151,7 +151,7 @@ onboarding.post('/signup', async (c) => {
       collections: seedResults.length,
     }, 201)
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     // console.error('[Onboarding] Signup failed:', err)
     // Handle duplicate email
     if (err.message?.includes('UNIQUE') || err.message?.includes('already exists')) {

@@ -35,7 +35,7 @@ export default function ChatsHistory() {
   useEffect(() => {
     fetch("/api/admin/chat-sessions")
       .then((r) => r.json())
-      .then((data: any) => {
+      .then((data: Record<string, unknown>) => {
         if (data.sessions) {
           setSessions(data.sessions);
           setStats(data.stats);

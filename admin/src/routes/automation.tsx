@@ -16,7 +16,7 @@ function GithubKanbanTab() {
       if (data.error) throw new Error(data.error);
       setIssues(data);
       setError(null);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(e.message || 'Erro de API');
     } finally {
       setLoading(false);
@@ -59,7 +59,7 @@ function GithubKanbanTab() {
           <div className="p-4 space-y-3 flex-1 overflow-y-auto custom-scrollbar">
             {loading ? (
               [1,2,3].map(i => <div key={i} className="h-28 rounded-lg bg-card animate-pulse" />)
-            ) : todo.map((issue: any) => (
+            ) : todo.map((issue: Record<string, unknown>) => (
               <a href={issue.url} target="_blank" rel="noreferrer" key={issue.id} className="block p-4 rounded-lg bg-card border border-border hover:bg-muted transition-colors group/card">
                 <div className="flex justify-between items-start mb-2">
                    <span className="text-xs font-semibold text-zinc-400">Ness.Engine</span>
@@ -87,7 +87,7 @@ function GithubKanbanTab() {
           <div className="p-4 space-y-3 flex-1 overflow-y-auto custom-scrollbar">
             {loading ? (
               [1,2,3].map(i => <div key={i} className="h-28 rounded-lg bg-card animate-pulse" />)
-            ) : inProgress.map((issue: any) => (
+            ) : inProgress.map((issue: Record<string, unknown>) => (
               <a href={issue.url} target="_blank" rel="noreferrer" key={issue.id} className="block p-4 rounded-lg bg-brand-primary/10 border border-brand-primary/30 hover:bg-brand-primary/20 transition-colors relative group/active">
                 <div className="absolute top-4 right-4 animate-pulse">
                    <div className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
@@ -118,7 +118,7 @@ function GithubKanbanTab() {
           <div className="p-4 space-y-3 flex-1 overflow-y-auto custom-scrollbar">
             {loading ? (
               [1,2,3].map(i => <div key={i} className="h-16 rounded-lg bg-card animate-pulse" />)
-            ) : done.slice(0, 15).map((issue: any) => (
+            ) : done.slice(0, 15).map((issue: Record<string, unknown>) => (
                <a href={issue.url} target="_blank" rel="noreferrer" key={issue.id} className="block p-3 rounded-lg bg-card border border-border hover:bg-muted transition-colors group/done">
                 <h4 className="text-sm font-medium line-through text-zinc-500 group-hover/done:text-emerald-500 transition-colors line-clamp-1">{issue.title}</h4>
                 <div className="flex justify-between items-baseline mt-2">

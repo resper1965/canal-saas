@@ -40,8 +40,8 @@ automationRoute.post('/newsletter/subscribe', zValidator('json', subscribeSchema
     // For now we just return success
     
     return c.json({ success: true, message: 'Confirme seu email na sua caixa postal.' }, 201);
-  } catch (error: any) {
-    if (error.message.includes('UNIQUE constraint failed')) {
+  } catch (error: unknown) {
+    if (error instanceof Error ? error.message : String(error).includes('UNIQUE constraint failed')) {
       return c.json({ error: 'Email já cadastrado.' }, 400);
     }
     return c.json({ error: 'Internal error' }, 500);
@@ -210,12 +210,12 @@ automationRoute.get('/github/repos', async (c) => {
       }
     });
     if (!res.ok) throw new Error('Failed to fetch github repos');
-    let repos = await res.json() as any[];
+    let repos = await res.json() as Record<string, unknown>[];
     
     // Filter out forks and map to Bento grid properties
     const portfolioCases = repos
-      .filter((repo: any) => !repo.fork && repo.name !== 'resper1965') // Hide profile readme and forks
-      .map((repo: any) => ({
+      .filter((repo: Record<string, unknown>) => !repo.fork && repo.name !== 'resper1965') // Hide profile readme and forks
+      .map((repo: Record<string, unknown>) => ({
         slug: repo.name,
         project: repo.name,
         client: 'Open Source',
@@ -230,7 +230,7 @@ automationRoute.get('/github/repos', async (c) => {
       
     c.header('Cache-Control', 'public, max-age=3600');
     return c.json(portfolioCases);
-  } catch (err: any) {
+  } catch (err: unknown) {
     // console.error('Github Fetch Error:', err);
     return c.json({ error: 'Failed' }, 500);
   }
@@ -247,21 +247,21 @@ automationRoute.get('/github/issues', async (c) => {
       }
     });
     if (!res.ok) throw new Error('Failed to fetch github issues');
-    const issues = await res.json() as any[];
+    const issues = await res.json() as Record<string, unknown>[];
     
     const mapped = issues
-      .filter((i: any) => !i.pull_request)
-      .map((issue: any) => ({
+      .filter((i: Record<string, unknown>) => !i.pull_request)
+      .map((issue: Record<string, unknown>) => ({
         id: issue.number,
         title: issue.title,
         status: issue.state === 'closed' ? 'done' : (issue.assignees?.length > 0 ? 'in-progress' : 'todo'),
         body: issue.body?.substring(0, 100),
         url: issue.html_url,
-        labels: issue.labels.map((l: any) => l.name)
+        labels: issue.labels.map((l: { name: string }) => l.name)
       }));
       
     return c.json(mapped);
-  } catch (err: any) {
+  } catch (err: unknown) {
     // console.error('Github Issues Fetch Error:', err);
     return c.json({ error: 'Failed' }, 500);
   }

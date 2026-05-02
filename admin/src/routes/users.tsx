@@ -31,7 +31,7 @@ export default function UsersPage() {
       } else if (res.error) {
         setErrorMsg(res.error.message || "Erro ao buscar usuários");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setErrorMsg(err.message || "Erro de conexão ao buscar usuários");
     } finally {
       setLoading(false);
@@ -105,7 +105,7 @@ export default function UsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u: any) => {
+                  {users.map((u: Record<string, unknown>) => {
                     const isBanned = u.banned;
                     return (
                       <tr key={u.id} className={`border-b border-border transition-colors ${isBanned ? 'bg-red-500/5' : 'hover:bg-muted/50'}`}>

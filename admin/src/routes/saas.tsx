@@ -27,7 +27,7 @@ export default function SaasSettingsPage() {
   // Determine user role in this org
   const userEmail = session?.user?.email || "";
   const isSuperAdmin = isSuperAdminEmail(userEmail);
-  const myMembership = activeOrg?.members?.find((m: any) => m.user?.email === userEmail || m.userId === session?.user?.id);
+  const myMembership = activeOrg?.members?.find((m: Record<string, unknown>) => m.user?.email === userEmail || m.userId === session?.user?.id);
   const myRole = myMembership?.role || "member";
   const isAdmin = isSuperAdmin || myRole === "owner" || myRole === "admin";
   const isEditor = isAdmin || myRole === "member";

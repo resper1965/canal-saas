@@ -18,6 +18,7 @@ import { createWorkersAI } from 'workers-ai-provider'
 import { createAuth } from './auth'
 import { getAuth } from './middleware/context'
 import { DEFAULT_TENANT_ID } from './config'
+import type { AnalyticsEngineDataset, AuthSession, AgentSession } from './types/bindings'
 import { seedVectors } from './seed-vectors'
 import { entries } from './routes/entries'
 import { media } from './routes/media'
@@ -44,16 +45,16 @@ export type Bindings = {
   SLACK_WEBHOOK_URL?: string
   AGENT_DO: DurableObjectNamespace
   QUEUE: Queue
-  ANALYTICS: any
+  ANALYTICS: AnalyticsEngineDataset
   ASSETS: Fetcher
-  SEND_EMAIL: any
-  EMAIL?: any
+  SEND_EMAIL: { send(message: { from: string; to: string; subject: string; html?: string }) : Promise<void> }
+  EMAIL?: { send(message: { from: string; to: string; subject: string; html?: string }) : Promise<void> }
 }
 
 export type Variables = {
   tenantId?: string;
-  agentSession?: any;
-  session?: any;
+  agentSession?: AgentSession;
+  session?: AuthSession;
 }
 
 const app = new Hono<{ Bindings: Bindings, Variables: Variables }>()
@@ -61,7 +62,7 @@ const app = new Hono<{ Bindings: Bindings, Variables: Variables }>()
 // ── Global Error Handler (catches ZodError from .parse()) ─────────
 app.onError((err, c) => {
   if (err.name === 'ZodError') {
-    const issues = (err as any).issues?.map((i: any) => `${i.path.join('.')}: ${i.message}`).join('; ') || 'Invalid input'
+    const issues = (err as { issues?: { path: string[]; message: string }[] }).issues?.map((i: { path: string[]; message: string }) => `${i.path.join('.')}: ${i.message}`).join('; ') || 'Invalid input'
     return c.json({ error: issues }, 400)
   }
   return c.json({ error: 'Internal Server Error' }, 500)
@@ -279,7 +280,7 @@ app.all('/api/auth/*', async (c) => {
     }
     
     return response
-  } catch (err: any) {
+  } catch (err: unknown) {
     const errMsg = err?.message || 'unknown'
     const errStack = err?.stack || ''
     if (isCallback) {
@@ -619,7 +620,7 @@ app.post('/api/setup/admin', async (c) => {
       body: { email, password, name },
     })
     return c.json({ success: true, user: result.user.email })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return c.json({ error: err?.message ?? 'Failed to create user' }, 400)
   }
 })
@@ -663,7 +664,7 @@ app.post('/api/setup/seed-org', async (c) => {
     ).bind(crypto.randomUUID(), orgId, body.userId).run()
 
     return c.json({ success: true, orgId, name: body.name, slug: body.slug, plan })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return c.json({ error: err?.message ?? 'Failed to seed organization' }, 500)
   }
 })
@@ -769,8 +770,8 @@ app.post('/api/admin/seed-vectors', requireAdminOrKey, async (c) => {
   try {
     const results = await seedVectors(c.env)
     return c.json({ success: true, results })
-  } catch (e: any) {
-    return c.json({ success: false, error: e.message }, 500)
+  } catch (e: unknown) {
+    return c.json({ success: false, error: e instanceof Error ? e.message : String(e) }, 500)
   }
 })
 
@@ -798,8 +799,8 @@ app.post('/api/admin/seed-collections', requireAdminOrKey, async (c) => {
         JSON.stringify(col.fields), collections.indexOf(col)
       ).run()
       results.push({ slug: col.slug, status: 'ok', governance: col.governance })
-    } catch (e: any) {
-      results.push({ slug: col.slug, status: 'error', error: e.message })
+    } catch (e: unknown) {
+      results.push({ slug: col.slug, status: 'error', error: e instanceof Error ? e.message : String(e) })
     }
   }
 
