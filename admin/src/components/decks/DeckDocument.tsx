@@ -1,4 +1,5 @@
 import { Document, Page, Text, View, StyleSheet, Font, Svg, Circle } from "@react-pdf/renderer";
+import { BRANDS, TEMPLATES } from "./brands";
 
 Font.register({
   family: "Montserrat",
@@ -16,30 +17,7 @@ const COLORS = {
   white: "#FFFFFF",
 };
 
-export const BRANDS: Record<string, { name: string; tagline: string }> = {
-  "ness": { name: "ness.", tagline: "Tecnologia, Segurança e Inteligência desde 1991" },
-  "trustness": { name: "trustness.", tagline: "Compliance, Privacidade & Governança" },
-  "forense": { name: "forense.io", tagline: "Investigação Digital & Resposta a Incidentes" },
-};
-
-export const TEMPLATES: Record<string, { label: string; slides: string[] }> = {
-  comercial: {
-    label: "Proposta Comercial",
-    slides: ["Capa", "Sobre a Empresa", "O Problema", "Nossa Solução", "Diferenciais", "Cases de Sucesso", "Investimento", "Próximos Passos"],
-  },
-  onepager: {
-    label: "One-Pager de Serviço",
-    slides: ["Capa", "Visão Geral", "Benefícios", "Como Funciona", "Contato"],
-  },
-  institucional: {
-    label: "Deck Institucional",
-    slides: ["Capa", "Quem Somos", "Timeline", "Verticais", "Números", "Equipe", "Contato"],
-  },
-  tecnico: {
-    label: "Relatório Técnico",
-    slides: ["Capa", "Sumário Executivo", "Metodologia", "Resultados", "Recomendações", "Anexos"],
-  },
-};
+export { BRANDS, TEMPLATES };
 
 const s = StyleSheet.create({
   pageCover: { backgroundColor: COLORS.dark, padding: 60, justifyContent: "flex-end", height: "100%" },

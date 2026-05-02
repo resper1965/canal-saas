@@ -60,7 +60,7 @@ export default function KnowledgeBasePage() {
       });
       setRefreshKey(k => k + 1);
     } catch(e) {
-       console.error(e)
+       // error handled by empty state
     }
   };
 

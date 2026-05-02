@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { BRANDS } from "../components/decks/DeckDocument";
+import { BRANDS } from "../components/decks/brands";
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 

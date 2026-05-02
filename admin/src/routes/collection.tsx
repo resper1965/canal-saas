@@ -83,7 +83,7 @@ export default function CollectionPage({ slug }: { slug: string }) {
       closeModal();
       await load();
     } catch (err) {
-      console.error("Save failed:", err);
+      // TODO: toast notification
     }
     setSaving(false);
   }

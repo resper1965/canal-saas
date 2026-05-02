@@ -15,9 +15,8 @@ import { betterAuth } from "better-auth";
 import { admin, organization } from "better-auth/plugins";
 import { agentAuth } from "@better-auth/agent-auth";
 import { apiKey } from "@better-auth/api-key";
-import { kyselyAdapter } from "@better-auth/kysely-adapter";
-import { Kysely } from "kysely";
-import { D1Dialect } from "kysely-d1";
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { drizzle } from "drizzle-orm/d1";
 import { sendEmail, welcomeEmail } from "./email";
 
 // Factory: cria instância por request para injetar o binding D1 do Cloudflare
@@ -27,10 +26,10 @@ export function createAuth(
   baseURL: string,
   opts?: { googleClientId?: string; googleClientSecret?: string; sendEmailBinding?: any; EMAIL?: any; SEND_EMAIL?: any; kv?: KVNamespace }
 ) {
-  const kyselyDb = new Kysely({ dialect: new D1Dialect({ database: db }) });
+  const drizzleDb = drizzle(db);
 
   return betterAuth({
-    database: kyselyAdapter(kyselyDb, { type: "sqlite" }),
+    database: drizzleAdapter(drizzleDb, { provider: "sqlite" }),
     secret,
     baseURL,
     

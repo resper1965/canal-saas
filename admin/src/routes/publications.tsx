@@ -151,7 +151,7 @@ export default function PublicationsPage() {
       closeModal();
       await load();
     } catch (err) {
-      console.error("Save failed:", err);
+      // TODO: toast notification
     }
     setSaving(false);
   }
@@ -180,7 +180,7 @@ export default function PublicationsPage() {
         setForm((prev) => ({ ...prev, file_url: result.url }));
       }
     } catch (err) {
-      console.error("PDF upload failed", err);
+      // TODO: toast notification
     }
     setUploadingPdf(false);
   }

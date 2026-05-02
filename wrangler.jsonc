@@ -23,7 +23,7 @@
 		"BETTER_AUTH_URL": "https://canal.bekaa.eu"
 	},
 	"alias": {
-		"better-auth/adapters/kysely": "./node_modules/better-auth/dist/db/adapter-kysely.mjs"
+		"@better-auth/drizzle-adapter": "./node_modules/@better-auth/drizzle-adapter/dist/index.mjs"
 	},
 	"vectorize": [
 		{

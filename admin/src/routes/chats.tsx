@@ -42,7 +42,7 @@ export default function ChatsHistory() {
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Failed to load generic chat sessions", err);
+        // error handled by empty state
         setLoading(false);
       });
   }, []);
