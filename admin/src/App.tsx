@@ -6,28 +6,24 @@ const LoginPage = React.lazy(() => import("./routes/login"));
 const DashboardLayout = React.lazy(() => import("./routes/dashboard"));
 const CollectionPage = React.lazy(() => import("./routes/collection"));
 const MediaPage = React.lazy(() => import("./routes/media"));
-const BrandbookPage = React.lazy(() => import("./routes/brandbook"));
-const SignaturesPage = React.lazy(() => import("./routes/signatures"));
 const SaasSettingsPage = React.lazy(() => import("./routes/saas"));
 const AccountSettingsPage = React.lazy(() => import("./routes/account"));
 const UsersPage = React.lazy(() => import("./routes/users"));
 const OrganizationsPage = React.lazy(() => import("./routes/organizations"));
 const DashboardHome = React.lazy(() => import("./routes/dashboard-home"));
-const DecksPage = React.lazy(() => import("./routes/decks"));
-const NewslettersPage = React.lazy(() => import("./routes/newsletters"));
-const AISettingsPage = React.lazy(() => import("./routes/ai-settings"));
-const CommunicationsPage = React.lazy(() => import("./routes/communications"));
 const CompliancePage = React.lazy(() => import("./routes/compliance"));
-const AutomationPage = React.lazy(() => import("./routes/automation"));
 const EmergencyPage = React.lazy(() => import("./routes/emergency"));
 const SaasBillingPage = React.lazy(() => import("./routes/saas-billing"));
-const KnowledgeBasePage = React.lazy(() => import("./routes/knowledge-base"));
 const ChatsHistoryPage = React.lazy(() => import("./routes/chats"));
 const ApplicantsPage = React.lazy(() => import("./routes/applicants"));
 const SocialCalendarPage = React.lazy(() => import("./routes/social-calendar"));
 const PublicationsPage = React.lazy(() => import("./routes/publications"));
 const OnboardingWizard = React.lazy(() => import("./routes/onboarding-wizard"));
 const HelpPage = React.lazy(() => import("./routes/help"));
+// Unified Hub Pages
+const BrandHubPage = React.lazy(() => import("./routes/brand"));
+const OutboxPage = React.lazy(() => import("./routes/outbox"));
+const IntelligencePage = React.lazy(() => import("./routes/intelligence"));
 function GlobalErrorBoundary() {
   const error = useRouteError() as Error;
   
@@ -74,22 +70,28 @@ const router = createBrowserRouter([
       { path: "jobs", element: <CollectionRoute slug="jobs" /> },
       { path: "applicants", element: <ApplicantsPage /> },
       { path: "pages", element: <CollectionRoute slug="pages" /> },
-      { path: "brandbook", element: <BrandbookPage /> },
-      { path: "signatures", element: <SignaturesPage /> },
-      { path: "decks", element: <DecksPage /> },
-      { path: "newsletters", element: <NewslettersPage /> },
-      { path: "ai-settings", element: <AISettingsPage /> },
-      { path: "communications", element: <CommunicationsPage /> },
+      // Unified Hubs
+      { path: "brand", element: <BrandHubPage /> },
+      { path: "outbox", element: <OutboxPage /> },
+      { path: "intelligence", element: <IntelligencePage /> },
+      // Legacy aliases (redirect to hubs)
+      { path: "brandbook", element: <BrandHubPage /> },
+      { path: "signatures", element: <BrandHubPage /> },
+      { path: "decks", element: <BrandHubPage /> },
+      { path: "newsletters", element: <OutboxPage /> },
+      { path: "communications", element: <OutboxPage /> },
+      { path: "ai-settings", element: <IntelligencePage /> },
+      { path: "knowledge-base", element: <IntelligencePage /> },
+      { path: "automation", element: <IntelligencePage /> },
+      // Individual routes
       { path: "media", element: <MediaPage /> },
       { path: "saas", element: <SaasSettingsPage /> },
       { path: "account", element: <AccountSettingsPage /> },
       { path: "users", element: <UsersPage /> },
       { path: "organizations", element: <OrganizationsPage /> },
       { path: "compliance", element: <CompliancePage /> },
-      { path: "knowledge-base", element: <KnowledgeBasePage /> },
       { path: "chats", element: <ChatsHistoryPage /> },
       { path: "social-calendar", element: <SocialCalendarPage /> },
-      { path: "automation", element: <AutomationPage /> },
       { path: "emergency", element: <EmergencyPage /> },
       { path: "saas-billing", element: <SaasBillingPage /> },
       { path: "crud/:slug", element: <DynamicCrudRoute /> },

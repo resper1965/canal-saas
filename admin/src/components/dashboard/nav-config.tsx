@@ -148,30 +148,12 @@ export const NAV: NavGroup[] = [
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20 M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
     items: [
       {
-        to: "/brandbook",
-        label: "Brandbook",
+        to: "/brand",
+        label: "Brand Hub",
         icon: (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/>
             <circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
-          </svg>
-        ),
-      },
-      {
-        to: "/signatures",
-        label: "Assinaturas",
-        icon: (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-          </svg>
-        ),
-      },
-      {
-        to: "/decks",
-        label: "Apresentações",
-        icon: (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
           </svg>
         ),
       },
@@ -182,17 +164,8 @@ export const NAV: NavGroup[] = [
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
     items: [
       {
-        to: "/newsletters",
-        label: "Newsletters",
-        icon: (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-          </svg>
-        ),
-      },
-      {
-        to: "/communications",
-        label: "Inbox Unificado",
+        to: "/outbox",
+        label: "Central de Mensagens",
         icon: (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/>
@@ -200,21 +173,11 @@ export const NAV: NavGroup[] = [
         ),
       },
       {
-        to: "/ai-settings",
-        label: "Gabi IA",
+        to: "/intelligence",
+        label: "Inteligência Artificial",
         icon: (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M6 10v1a6 6 0 0 0 12 0v-1"/><path d="M12 18v4"/><path d="M8 22h8"/>
-          </svg>
-        ),
-      },
-
-      {
-        to: "/knowledge-base",
-        label: "Memória da IA (RAG)",
-        icon: (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
           </svg>
         ),
       },
@@ -224,21 +187,6 @@ export const NAV: NavGroup[] = [
         icon: (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-        ),
-      },
-    ],
-  },
-  {
-    section: "Growth & IA (Fase 5)",
-    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,
-    items: [
-      {
-        to: "/automation",
-        label: "IA Automações",
-        icon: (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
           </svg>
         ),
       },
@@ -301,20 +249,23 @@ export const PAGE_META: Record<string, { title: string; sub: string }> = {
   "/applicants": { title: "Candidatos", sub: "Gestão de candidatos e triagem" },
   "/social-calendar": { title: "Calendário Social", sub: "Posts agendados e publicados" },
   "/media":       { title: "Assets & RAG",   sub: "Repositório Pessoal e Base de IA" },
-  "/brandbook":   { title: "Brandbook",      sub: "Assets de marca do grupo" },
-  "/signatures":  { title: "Assinaturas",    sub: "Assinaturas de email corporativas" },
-  "/decks":       { title: "Apresentações",  sub: "Gerador de decks PDF corporativos" },
-  "/communications": { title: "Central de Mensagens", sub: "Inbox unificado de forms, leads e chats" },
-  "/newsletters": { title: "Newsletters", sub: "Campanhas e disparos de email" },
-  "/knowledge-base": { title: "Memória da IA", sub: "Base RAG da assistente Gabi" },
-  "/ai-settings": { title: "Gabi IA",      sub: "Configuração da assistente virtual" },
+  "/brand":       { title: "Brand Hub",      sub: "Brandbook, Assinaturas e Apresentações" },
+  "/brandbook":   { title: "Brand Hub",      sub: "Brandbook, Assinaturas e Apresentações" },
+  "/signatures":  { title: "Brand Hub",      sub: "Brandbook, Assinaturas e Apresentações" },
+  "/decks":       { title: "Brand Hub",      sub: "Brandbook, Assinaturas e Apresentações" },
+  "/outbox":      { title: "Central de Mensagens", sub: "Inbox, Forms, Leads e Newsletters" },
+  "/communications": { title: "Central de Mensagens", sub: "Inbox, Forms, Leads e Newsletters" },
+  "/newsletters": { title: "Central de Mensagens", sub: "Inbox, Forms, Leads e Newsletters" },
+  "/intelligence": { title: "Inteligência Artificial", sub: "Configuração, RAG e Automações" },
+  "/knowledge-base": { title: "Inteligência Artificial", sub: "Configuração, RAG e Automações" },
+  "/ai-settings": { title: "Inteligência Artificial", sub: "Configuração, RAG e Automações" },
+  "/automation":  { title: "Inteligência Artificial", sub: "Configuração, RAG e Automações" },
   "/account": { title: "Minha Conta",   sub: "Perfil, senha e vinculações" },
   "/saas":    { title: "Sua Empresa",     sub: "Gestão do workspace e membros" },
   "/users":   { title: "Gestão Global de Usuários", sub: "Administração de acessos (Super Admin)" },
   "/organizations": { title: "Gestão Global de Empresas", sub: "Visão central de workspaces (Super Admin)" },
   "/compliance":  { title: "Compliance & LGPD", sub: "DSAR, Canal de Denúncia e Políticas" },
   "/publications": { title: "Publicações & RI", sub: "Resultados financeiros, relatórios e documentos" },
-  "/automation":  { title: "Automações & IA",   sub: "Social, Newsletters, Triagem de CVs" },
   "/emergency":   { title: "Fluxo de Emergência", sub: "Tratativa de Chamados Críticos do Cliente" },
   "/help":        { title: "Manual",             sub: "Referência completa da plataforma" },
 };
