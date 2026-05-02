@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { SearchInput } from "../components/ui/SearchInput";
+import { useToast } from "../components/ui/Toast";
+import { useApiResource } from "../hooks";
 
 type Message = {
   type: string;
@@ -26,25 +29,13 @@ const TYPE_CONFIG: Record<string, { icon: React.ReactNode; label: string; colorC
 };
 
 export default function CommunicationsPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: rawMessages, loading, refetch } = useApiResource<Message[]>("/api/admin/communications");
+  const messages = rawMessages ?? [];
   const [filter, setFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Message | null>(null);
   const [forwarding, setForwarding] = useState(false);
-  const [notification, setNotification] = useState<{message: string, type: "success" | "error"} | null>(null);
-
-  const showNotification = (message: string, type: "success" | "error" = "success") => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
-  };
-
-  useEffect(() => {
-    fetch("/api/admin/communications", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => setMessages(Array.isArray(data) ? data : []))
-      .finally(() => setLoading(false));
-  }, []);
+  const { toast: showNotification } = useToast();
 
   const handleForward = async (msg: Message) => {
     const email = prompt("Encaminhar para qual e-mail?");
@@ -72,7 +63,7 @@ export default function CommunicationsPage() {
     const endpoint = `/api/admin/${msg.type}s/${msg.id}`; 
     try {
       await fetch(endpoint, { method: "DELETE", credentials: "include" });
-      setMessages((prev) => prev.filter((m) => m.id !== msg.id || m.type !== msg.type));
+      refetch();
       setSelected(null);
       showNotification("Item excluído.");
     } catch {
@@ -89,10 +80,7 @@ export default function CommunicationsPage() {
         credentials: "include",
         body: JSON.stringify({ status: newStatus }),
       });
-      setMessages((prev) => prev.map((m) => (m.id === msg.id && m.type === msg.type) ? { ...m, status: newStatus } : m));
-      if (selected?.id === msg.id && selected?.type === msg.type) {
-         setSelected({ ...selected, status: newStatus });
-      }
+      refetch();
       showNotification("Status atualizado!");
     } catch {
       showNotification("Erro ao atualizar.", "error");
@@ -152,17 +140,7 @@ export default function CommunicationsPage() {
               ))}
             </div>
 
-            {/* Search */}
-            <div className="relative">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar..."
-                className="w-full h-10 rounded-lg border border-border bg-card pl-9 pr-4 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-border transition-colors"
-              />
-            </div>
+            <SearchInput value={search} onChange={setSearch} placeholder="Buscar..." />
           </div>
 
           {/* Message List */}
@@ -329,19 +307,7 @@ export default function CommunicationsPage() {
         </div>
       </div>
 
-      {/* Notification Toast */}
-      {notification && (
-        <div className={`fixed bottom-6 right-6 px-5 py-3 rounded-lg border shadow-lg animate-in slide-in-from-right duration-300 flex items-center gap-3 z-100 ${
-          notification.type === "success" 
-            ? "bg-card border-emerald-500/30 text-emerald-400" 
-            : "bg-card border-red-500/30 text-red-400"
-        }`}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            {notification.type === "success" ? <path d="m5 12 5 5L20 7"/> : <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>}
-          </svg>
-          <span className="text-sm font-medium">{notification.message}</span>
-        </div>
-      )}
+
     </div>
   );
 }

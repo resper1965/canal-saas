@@ -1,3 +1,4 @@
+import { Spinner } from "../components/ui/Spinner";
 import { useState, useEffect, useRef } from "react";
 import { fetchMedia, uploadMedia, deleteMedia, type EntryMeta } from "../lib/api";
 
@@ -120,7 +121,7 @@ export default function MediaPage() {
             
             {uploading ? (
               <div className="relative z-10 flex flex-col items-center gap-4">
-                <div className="w-12 h-12 rounded-full border-4 border-border border-t-brand-primary animate-spin" />
+                <Spinner size="lg" />
                 <div className="text-center space-y-1">
                    <span className="text-sm font-semibold text-brand-primary block">Fazendo Upload...</span>
                    <span className="text-xs font-medium text-zinc-500">Processando e enviando arquivos</span>
@@ -172,7 +173,7 @@ export default function MediaPage() {
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
             {loading ? (
               <div className="h-full flex flex-col items-center justify-center gap-4 opacity-50">
-                 <div className="w-12 h-12 rounded-full border-4 border-border border-t-brand-primary animate-spin" />
+                 <Spinner size="lg" />
                  <div className="text-center space-y-1">
                     <span className="text-sm font-bold text-white uppercase block">Carregando Media</span>
                     <span className="text-xs font-medium text-zinc-500">Recuperando catálogo do S3</span>

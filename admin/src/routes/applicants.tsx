@@ -1,5 +1,7 @@
 import * as React from "react";
-import { BrainCircuit, CheckCircle2, XCircle, Search, Inbox } from "lucide-react";
+import { BrainCircuit, CheckCircle2, XCircle, Inbox } from "lucide-react";
+import { SearchInput } from "../components/ui/SearchInput";
+import { useApiResource } from "../hooks";
 
 interface Applicant {
   id: string;
@@ -16,23 +18,9 @@ interface Applicant {
 }
 
 export default function ApplicantsPage() {
-  const [data, setData] = React.useState<Applicant[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const { data, loading, refetch } = useApiResource<Applicant[]>("/api/admin/applicants");
   const [searchTerm, setSearchTerm] = React.useState("");
-
-  React.useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/admin/applicants");
-        if (res.ok) setData(await res.json());
-      } catch (err) {
-        console.error("Failed to load applicants", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, []);
+  const items = data ?? [];
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
@@ -40,11 +28,11 @@ export default function ApplicantsPage() {
         method: "PATCH",
         body: JSON.stringify({ status: newStatus }),
       });
-      setData(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
+      refetch();
     } catch (err) {}
   };
 
-  const filtered = data.filter(a => 
+  const filtered = items.filter(a => 
     a.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     a.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -53,16 +41,11 @@ export default function ApplicantsPage() {
     <div className="max-w-7xl w-full px-6 py-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto">
       
       {/* Search */}
-      <div className="flex items-center gap-4 bg-card border border-border rounded-xl px-5 py-3">
-        <Search size={16} className="text-zinc-500 shrink-0" />
-        <input
-          type="text"
-          placeholder="Buscar candidato por nome ou email..."
-          className="flex-1 bg-transparent text-sm text-white placeholder:text-zinc-600 outline-none"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-        />
-      </div>
+      <SearchInput
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Buscar candidato por nome ou email..."
+      />
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

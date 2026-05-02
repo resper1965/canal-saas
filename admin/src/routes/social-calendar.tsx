@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Calendar, PlusCircle, CheckCircle2 } from "lucide-react";
+import { useApiResource } from "../hooks";
 
 interface SocialPost {
   id: string;
@@ -15,22 +16,8 @@ interface SocialPost {
 }
 
 export default function SocialCalendarPage() {
-  const [data, setData] = React.useState<SocialPost[]>([]);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/admin/social-posts");
-        if (res.ok) setData(await res.json());
-      } catch (err) {
-        console.error("Failed to load posts", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, []);
+  const { data, loading, refetch } = useApiResource<SocialPost[]>("/api/admin/social-posts");
+  const items = data ?? [];
 
   const handleApprove = async (id: string) => {
     try {
@@ -38,7 +25,7 @@ export default function SocialCalendarPage() {
         method: "PATCH",
         body: JSON.stringify({ status: "approved" }),
       });
-      setData(prev => prev.map(p => p.id === id ? { ...p, status: "approved" } : p));
+      refetch();
     } catch (err) {}
   };
 
@@ -51,7 +38,7 @@ export default function SocialCalendarPage() {
              <div key={i} className="h-64 bg-card border border-border rounded-xl animate-pulse" />
           ))}
         </div>
-      ) : data.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-card border border-border rounded-xl">
            <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center text-zinc-500 mb-6">
               <Calendar size={28} strokeWidth={1.5} />
@@ -63,7 +50,7 @@ export default function SocialCalendarPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {data.map(post => (
+          {items.map(post => (
             <div key={post.id} className="group bg-card border border-border rounded-xl p-6 flex flex-col hover:border-border transition-colors">
               
               <div className="flex items-center justify-between mb-4">
