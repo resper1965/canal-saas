@@ -247,7 +247,7 @@ export default function MediaPage() {
 
           <div className="p-6 border-t border-border bg-card flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
               <button 
-                className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-muted px-6 text-xs font-bold uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-50 disabled:pointer-events-none"
+                className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-muted px-6 text-xs font-bold uppercase transition-colors hover:bg-card hover:text-foreground disabled:opacity-50 disabled:pointer-events-none"
                 disabled={page <= 1} 
                 onClick={() => setPage(page - 1)}
               >
@@ -259,7 +259,7 @@ export default function MediaPage() {
               </div>
 
               <button 
-                className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-muted px-6 text-xs font-bold uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-50 disabled:pointer-events-none"
+                className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-muted px-6 text-xs font-bold uppercase transition-colors hover:bg-card hover:text-foreground disabled:opacity-50 disabled:pointer-events-none"
                 disabled={page >= (meta?.totalPages || 1)} 
                 onClick={() => setPage(page + 1)}
               >

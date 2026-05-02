@@ -16,6 +16,7 @@ import { streamText } from 'ai'
 import { z } from 'zod'
 import { createWorkersAI } from 'workers-ai-provider'
 import { createAuth } from './auth'
+import { getAuth } from './middleware/context'
 import { seedVectors } from './seed-vectors'
 import { entries } from './routes/entries'
 import { media } from './routes/media'
@@ -48,7 +49,7 @@ export type Bindings = {
   EMAIL?: any
 }
 
-type Variables = {
+export type Variables = {
   tenantId?: string;
   agentSession?: any;
   session?: any;
@@ -186,7 +187,7 @@ app.use('/*', cors({
 }))
 // ── OAuth Redirect (GET) - browser navigation ensures cookies are stored ──
 app.get('/api/oauth/google', async (c) => {
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
+  const auth = getAuth(c)
   const fakeReq = new Request(`${c.env.BETTER_AUTH_URL}/api/auth/sign-in/social`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -225,7 +226,7 @@ app.get('/api/oauth/google', async (c) => {
 app.all('/api/auth/*', async (c) => {
   const isCallback = c.req.path.includes('/callback/')
   try {
-    const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
+    const auth = getAuth(c)
     
     let reqToHandle = c.req.raw
     
@@ -282,7 +283,7 @@ app.all('/api/auth/*', async (c) => {
 
 // ── Auth Middleware (SaaS / Tenant Isolator) ───────────────────
 async function requireSession(c: Context<{ Bindings: Bindings, Variables: Variables }>, next: () => Promise<void>) {
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
+  const auth = getAuth(c)
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
   if (!session) return c.json({ error: 'Unauthorized' }, 401)
   
@@ -299,7 +300,7 @@ async function requireAdminOrKey(c: Context<{ Bindings: Bindings, Variables: Var
     await next()
     return
   }
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
+  const auth = getAuth(c)
   
   // Se for AI Agent usando Token (MCP via Agent Auth)
   const agentSession = await auth.api.getAgentSession?.({ headers: c.req.raw.headers }).catch(() => null)
@@ -359,7 +360,7 @@ async function resolveApiKeyOrSession(c: Context<{ Bindings: Bindings, Variables
   }
 
   // 2. Fallback para session cookie (admin panel)
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
+  const auth = getAuth(c)
   const session = await auth.api.getSession({ headers: c.req.raw.headers }).catch(() => null)
   if (session) {
     const tenantId = session?.session?.activeOrganizationId || undefined;
@@ -376,7 +377,7 @@ app.get('/', (c) => c.json({ name: 'Canal CMS', status: 'ok' }))
 
 // ── Agent Discovery (/.well-known) ──────────────────────────────
 app.all('/.well-known/agent-configuration', (c) => {
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
+  const auth = getAuth(c)
   return auth.handler(c.req.raw)
 })
 
@@ -596,7 +597,7 @@ app.post('/api/setup/admin', async (c) => {
     return c.json({ error: 'Forbidden' }, 403)
   }
 
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, EMAIL: c.env.EMAIL, kv: c.env.CANAL_KV })
+  const auth = getAuth(c)
   
   const parsed = setupAdminSchema.safeParse(await c.req.json())
   if (!parsed.success) return c.json({ error: 'Invalid payload', details: parsed.error.issues }, 400)
@@ -625,7 +626,7 @@ app.post('/api/setup/seed-org', async (c) => {
     return c.json({ error: 'name, slug, and userId required' }, 400)
   }
 
-  const auth = createAuth(c.env.DB, c.env.BETTER_AUTH_SECRET, c.env.BETTER_AUTH_URL, { googleClientId: c.env.GOOGLE_CLIENT_ID, googleClientSecret: c.env.GOOGLE_CLIENT_SECRET, sendEmailBinding: c.env.SEND_EMAIL, kv: c.env.CANAL_KV })
+  const auth = getAuth(c)
 
   try {
     // Create org via Better Auth API

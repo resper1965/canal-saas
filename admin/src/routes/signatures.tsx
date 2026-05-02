@@ -190,7 +190,7 @@ export default function SignaturesPage() {
                   </div>
 
                    <div className="p-8 bg-background rounded-lg border border-border flex items-center justify-center">
-                      <div className="bg-white p-6 rounded-lg shadow-lg" id="sig-preview">
+                      <div className="bg-card p-6 rounded-lg shadow-lg" id="sig-preview">
                          <SignaturePreview form={form} />
                       </div>
                    </div>

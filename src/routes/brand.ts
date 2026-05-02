@@ -34,6 +34,7 @@ export const brandRouter = new Hono<{ Bindings: Bindings, Variables: { tenantId?
 brandRouter.get('/assets', async (c) => {
   const tenantId = c.get('tenantId') || 'ness'
   const assets = BRAND_CONFIG[tenantId] || BRAND_CONFIG['ness']
+  c.header('Cache-Control', 'public, max-age=300')
   return c.json({ success: true, tenant: tenantId, assets, complete_book: BRAND_CONFIG })
 })
 

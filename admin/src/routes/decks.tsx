@@ -133,7 +133,7 @@ export default function DecksPage() {
                           </div>
                        </div>
                        
-                       <button className="h-10 px-6 rounded-md border border-border bg-muted text-white text-xs font-bold uppercase hover:bg-white hover:text-black transition-colors shrink-0">
+                       <button className="h-10 px-6 rounded-md border border-border bg-muted text-white text-xs font-bold uppercase hover:bg-card hover:text-foreground transition-colors shrink-0">
                           Deploy Asset
                        </button>
                      </div>

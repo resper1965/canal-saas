@@ -45,7 +45,7 @@ export default function BrandbookHub() {
           >
             {showManual ? 'Fechar Manual' : 'Manual de Identidade'}
           </button>
-          <Link to="/crud/brandbook" className="h-9 px-4 flex items-center rounded-md bg-white text-black text-xs font-semibold hover:bg-zinc-200 transition-colors">
+          <Link to="/crud/brandbook" className="h-9 px-4 flex items-center rounded-md bg-card text-foreground text-xs font-semibold hover:bg-zinc-200 transition-colors">
             Gerenciar Catálogo
           </Link>
         </div>

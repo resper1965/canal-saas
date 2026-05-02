@@ -236,7 +236,7 @@ export default function NewslettersPage() {
                <div className={`bg-card border border-border rounded-xl p-5 transition-opacity ${showPreview ? 'opacity-100' : 'opacity-40'}`}>
                   <h3 className="text-sm font-semibold text-white mb-4">Preview</h3>
                   {showPreview ? (
-                    <div className="rounded-lg overflow-hidden bg-white">
+                    <div className="rounded-lg overflow-hidden bg-card">
                        <div dangerouslySetInnerHTML={{ __html: renderEmailPreview() }} />
                     </div>
                   ) : (
@@ -275,7 +275,7 @@ export default function NewslettersPage() {
                 className="flex-1 h-10 bg-card border border-border rounded-md px-4 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-border transition-colors"
               />
               <button 
-                className="h-10 px-5 rounded-md bg-white text-black text-xs font-semibold hover:bg-zinc-200 transition-colors shrink-0" 
+                className="h-10 px-5 rounded-md bg-card text-foreground text-xs font-semibold hover:bg-zinc-200 transition-colors shrink-0" 
                 onClick={handleAddSubscriber}
               >
                 Adicionar
