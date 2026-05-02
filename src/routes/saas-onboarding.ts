@@ -12,6 +12,7 @@
  */
 
 import { Hono, Context } from 'hono'
+import { safeParse, CheckoutSchema } from '../schemas'
 import type { Bindings } from '../index'
 
 type Variables = {
@@ -64,11 +65,9 @@ saasRoutes.post('/billing/checkout', async (c) => {
     })
   }
 
-  const { tenantId, plan, successUrl, cancelUrl } = await c.req.json() as {
-    tenantId: string; plan: string; successUrl?: string; cancelUrl?: string
-  }
-
-  if (!tenantId || !plan) return c.json({ error: 'tenantId and plan required' }, 400)
+  const parsed = safeParse(CheckoutSchema, await c.req.json())
+  if (!parsed.success) return c.json({ error: parsed.error }, 400)
+  const { tenantId, plan, successUrl, cancelUrl } = parsed.data
 
   const planDef = PLANS[plan]
   if (!planDef?.priceId) {

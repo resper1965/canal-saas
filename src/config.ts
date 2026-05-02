@@ -6,6 +6,8 @@
  * For now, they serve as fallback defaults.
  */
 
+export const DEFAULT_TENANT_ID = 'ness'
+
 export const DEFAULT_BRAND = {
   name: 'ness.',
   website: 'https://ness.com.br',

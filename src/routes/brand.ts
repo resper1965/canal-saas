@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '../config'
 import { Hono } from 'hono'
 import type { Bindings } from '../index'
 
@@ -32,7 +33,7 @@ export const brandRouter = new Hono<{ Bindings: Bindings, Variables: { tenantId?
 
 // T5.5.2 API pública estática para o Brandbook
 brandRouter.get('/assets', async (c) => {
-  const tenantId = c.get('tenantId') || 'ness'
+  const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const assets = BRAND_CONFIG[tenantId] || BRAND_CONFIG['ness']
   c.header('Cache-Control', 'public, max-age=300')
   return c.json({ success: true, tenant: tenantId, assets, complete_book: BRAND_CONFIG })
@@ -148,7 +149,7 @@ brandRouter.get('/signature/me', async (c) => {
   if (!user) return c.json({ error: 'Unauthorized' }, 401)
   
   // Customização condicional via Auth Meta ou fallback para default
-  const defaultBrand = c.get('tenantId') || 'ness'
+  const defaultBrand = c.get('tenantId') || DEFAULT_TENANT_ID
   
   const form = {
     name: user.name || "Colaborador",

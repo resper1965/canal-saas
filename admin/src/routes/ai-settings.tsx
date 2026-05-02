@@ -1,3 +1,4 @@
+import { useToast } from "../components/ui/Toast";
 import { useState, useEffect } from "react";
 import { authClient } from "../lib/auth-client";
 import ChatsHistory from "./chats";

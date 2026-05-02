@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { authClient } from "../lib/auth-client";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card";
 import { StatCard } from "../components/ui/StatCard";
+import { useToast } from "../components/ui/Toast";
 
 type Document = {
   id: string;
@@ -13,6 +14,7 @@ type Document = {
 
 export default function KnowledgeBasePage() {
   const { data: activeOrg } = authClient.useActiveOrganization();
+  const { toast } = useToast();
   const [docs, setDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -37,15 +39,19 @@ export default function KnowledgeBasePage() {
     setUploading(true);
 
     try {
-      await fetch("/api/admin/knowledge-base", {
+      const res = await fetch("/api/admin/knowledge-base", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ title, text_payload: rawText }),
       });
+      if (!res.ok) throw new Error('Upload failed');
+      toast('Documento indexado com sucesso', 'success');
       setTitle('');
       setRawText('');
-      setRefreshKey(k => k + 1); // trigger list refresh
+      setRefreshKey(k => k + 1);
+    } catch {
+      toast('Erro ao indexar documento', 'error');
     } finally {
       setUploading(false);
     }
@@ -54,13 +60,15 @@ export default function KnowledgeBasePage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Remover este documento da base de inteligência? (Os vetores podem demorar até 1h para sumirem completamente em cache)")) return;
     try {
-      await fetch(`/api/admin/knowledge-base/${id}`, {
+      const res = await fetch(`/api/admin/knowledge-base/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
+      if (!res.ok) throw new Error('Delete failed');
+      toast('Documento removido', 'success');
       setRefreshKey(k => k + 1);
-    } catch(e) {
-       // error handled by empty state
+    } catch {
+      toast('Erro ao remover documento', 'error');
     }
   };
 

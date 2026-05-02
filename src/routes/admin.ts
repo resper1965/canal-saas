@@ -12,6 +12,7 @@ import { eq, sql, like, desc, and } from 'drizzle-orm'
 import * as schema from '../db/schema'
 import { hashApiKey } from '../security'
 import { safeParse, CreateApiKeySchema, CreateDomainSchema, UpdateStatusSchema, AddSubscriberSchema, SendNewsletterSchema, UpdateAiSettingsSchema, ForwardMessageSchema, CreateKnowledgeBaseSchema, UpdateOrgSchema } from '../schemas'
+import { DEFAULT_TENANT_ID } from '../config'
 import type { Bindings } from '../index'
 
 type Variables = {
@@ -511,7 +512,7 @@ admin.get('/health', async (c) => {
 // ── AI Settings (D1-backed via chatbot_config) ─────────────────
 admin.get('/ai-settings', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
-  const tenantId = c.get('tenantId') || 'ness'
+  const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const db = getDb(c)
   const [config] = await db.select().from(schema.chatbot_config).where(eq(schema.chatbot_config.tenant_id, tenantId)).limit(1)
   
@@ -539,7 +540,7 @@ admin.get('/ai-settings', async (c) => {
 
 admin.put('/ai-settings', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
-  const tenantId = c.get('tenantId') || 'ness'
+  const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const db = getDb(c)
   
   const parsed = safeParse(UpdateAiSettingsSchema, await c.req.json())
@@ -648,7 +649,7 @@ admin.post('/communications/forward', async (c) => {
 // ── Knowledge Base (RAG) ─────────────────────────────────────────
 admin.get('/knowledge-base', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
-  const tenantId = c.get('tenantId') || 'ness'
+  const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const db = getDb(c)
   const results = await db.select().from(schema.knowledge_base)
     .where(eq(schema.knowledge_base.tenant_id, tenantId))
@@ -658,7 +659,7 @@ admin.get('/knowledge-base', async (c) => {
 
 admin.post('/knowledge-base', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
-  const tenantId = c.get('tenantId') || 'ness'
+  const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const session = c.get('session')
   const parsed = safeParse(CreateKnowledgeBaseSchema, await c.req.json())
   if (!parsed.success) return c.json({ error: parsed.error }, 400)
@@ -701,7 +702,7 @@ admin.post('/knowledge-base', async (c) => {
 admin.delete('/knowledge-base/:id', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
-  const tenantId = c.get('tenantId') || 'ness'
+  const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const db = getDb(c)
   
   const [doc] = await db.select().from(schema.knowledge_base).where(eq(schema.knowledge_base.id, id)).limit(1)
@@ -724,7 +725,7 @@ admin.delete('/knowledge-base/:id', async (c) => {
 
 admin.get('/chat-sessions', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
-  const tenantId = c.get('tenantId') || 'ness'
+  const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const db = getDb(c)
 
   // Consultar estatísticas gerais e a lista de sessões recentes
@@ -753,7 +754,7 @@ admin.get('/chat-sessions', async (c) => {
 
 admin.get('/chat-sessions/export', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
-  const tenantId = c.get('tenantId') || 'ness'
+  const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
 
   const rows = await c.env.DB.prepare(`
     SELECT s.id, s.created_at, s.csat_score, m.role, m.content

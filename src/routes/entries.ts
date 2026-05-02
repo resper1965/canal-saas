@@ -12,6 +12,7 @@ import { createAuth } from '../auth'
 import { upsertVector, deleteVector } from '../vectorize-sync'
 import { sanitizeEntryData } from '../security'
 import type { EntryRow } from '../types'
+import { z } from 'zod'
 
 type Env = {
   Bindings: {
@@ -498,9 +499,10 @@ entries.post('/collections/forms/entries/:id/forward', async (c) => {
 
   if (!existing) return c.json({ error: 'Entry not found' }, 404)
 
-  const body = await c.req.json().catch(() => ({}))
-  const emails = body.emails as string[]
-  if (!emails || emails.length === 0) return c.json({ error: 'No emails provided' }, 400)
+  const forwardSchema = z.object({ emails: z.array(z.string().email()).min(1) })
+  const parsed = forwardSchema.safeParse(await c.req.json().catch(() => ({})))
+  if (!parsed.success) return c.json({ error: 'Valid email list required' }, 400)
+  const emails = parsed.data.emails
 
   // Use Resend to send the payload
   const data = safeParseJSON(existing.data)

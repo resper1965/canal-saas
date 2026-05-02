@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, desc, and, sql, count } from 'drizzle-orm'
 import { dsar_requests, whistleblower_cases, policies, consent_logs, audit_logs } from '../db/schema'
-import { DEFAULT_BRAND } from '../config'
+import { DEFAULT_BRAND, DEFAULT_TENANT_ID } from '../config'
 import { safeParse, CreateDsarSchema, UpdateDsarSchema, CreateWhistleblowerSchema, UpdateWhistleblowerSchema, CreatePolicySchema, UpdatePolicySchema, LogConsentSchema } from '../schemas'
 
 type Env = {
@@ -77,7 +77,7 @@ app.post('/dsar', async (c) => {
 // GET /api/admin/dsar — List all requests
 app.get('/admin/dsar', async (c) => {
   const db = drizzle(c.env.DB)
-  const tenantId = c.req.query('tenant_id') || 'ness'
+  const tenantId = c.req.query('tenant_id') || DEFAULT_TENANT_ID
   const requests = await db.select().from(dsar_requests)
     .where(eq(dsar_requests.tenant_id, tenantId))
     .orderBy(desc(dsar_requests.created_at))
@@ -103,7 +103,7 @@ app.put('/admin/dsar/:id', async (c) => {
   // Audit log
   await db.insert(audit_logs).values({
     id: crypto.randomUUID(),
-    tenant_id: body.tenant_id || 'ness',
+    tenant_id: body.tenant_id || DEFAULT_TENANT_ID,
     user_id: body.actor_id,
     action: `dsar.${body.status}`,
     resource: 'dsar_requests',
@@ -164,7 +164,7 @@ app.post('/whistleblower', async (c) => {
   const iv = crypto.getRandomValues(new Uint8Array(12))
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    encoder.encode((body.tenant_id || 'ness').padEnd(32, '0').substring(0, 32)),
+    encoder.encode((body.tenant_id || DEFAULT_TENANT_ID).padEnd(32, '0').substring(0, 32)),
     { name: 'AES-GCM' },
     false,
     ['encrypt']
@@ -192,7 +192,7 @@ app.post('/whistleblower', async (c) => {
 
   await db.insert(whistleblower_cases).values({
     id,
-    tenant_id: body.tenant_id || 'ness',
+    tenant_id: body.tenant_id || DEFAULT_TENANT_ID,
     case_code: caseCode,
     encrypted_payload: encryptedPayload,
     category: body.category,
@@ -243,7 +243,7 @@ app.post('/whistleblower/:code/followup', async (c) => {
 // GET /api/admin/whistleblower — List all cases
 app.get('/admin/whistleblower', async (c) => {
   const db = drizzle(c.env.DB)
-  const tenantId = c.req.query('tenant_id') || 'ness'
+  const tenantId = c.req.query('tenant_id') || DEFAULT_TENANT_ID
   const cases = await db.select({
     id: whistleblower_cases.id,
     case_code: whistleblower_cases.case_code,
@@ -301,7 +301,7 @@ app.get('/policies/:type', async (c) => {
 // GET /api/admin/policies — List all
 app.get('/admin/policies', async (c) => {
   const db = drizzle(c.env.DB)
-  const tenantId = c.req.query('tenant_id') || 'ness'
+  const tenantId = c.req.query('tenant_id') || DEFAULT_TENANT_ID
   const all = await db.select().from(policies)
     .where(eq(policies.tenant_id, tenantId))
     .orderBy(desc(policies.updated_at))
@@ -412,7 +412,7 @@ app.post('/consent', async (c) => {
 // GET /api/admin/consent-logs
 app.get('/admin/consent-logs', async (c) => {
   const db = drizzle(c.env.DB)
-  const tenantId = c.req.query('tenant_id') || 'ness'
+  const tenantId = c.req.query('tenant_id') || DEFAULT_TENANT_ID
   const logs = await db.select().from(consent_logs)
     .where(eq(consent_logs.tenant_id, tenantId))
     .orderBy(desc(consent_logs.created_at))

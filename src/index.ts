@@ -17,6 +17,7 @@ import { z } from 'zod'
 import { createWorkersAI } from 'workers-ai-provider'
 import { createAuth } from './auth'
 import { getAuth } from './middleware/context'
+import { DEFAULT_TENANT_ID } from './config'
 import { seedVectors } from './seed-vectors'
 import { entries } from './routes/entries'
 import { media } from './routes/media'
@@ -677,7 +678,7 @@ import { chatbot_config } from './db/schema'
 // Public chatbot config (cached 60s)
 app.get('/api/chatbot-config', async (c) => {
   const db = drizzle(c.env.DB)
-  const tenantId = c.req.query('tenant') || 'ness'
+  const tenantId = c.req.query('tenant') || DEFAULT_TENANT_ID
   const [config] = await db.select({
     bot_name: chatbot_config.bot_name,
     avatar_url: chatbot_config.avatar_url,

@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '../config'
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, desc, sql, count } from 'drizzle-orm'
@@ -19,7 +20,7 @@ const app = new Hono<Env>()
 // GET /api/admin/chatbot-config?tenant_id=...
 app.get('/chatbot-config', async (c) => {
   const db = drizzle(c.env.DB)
-  const tenantId = c.req.query('tenant_id') || 'ness'
+  const tenantId = c.req.query('tenant_id') || DEFAULT_TENANT_ID
   const [config] = await db.select().from(chatbot_config).where(eq(chatbot_config.tenant_id, tenantId)).limit(1)
   if (!config) {
     return c.json({
@@ -38,7 +39,7 @@ app.get('/chatbot-config', async (c) => {
 app.put('/chatbot-config', async (c) => {
   const db = drizzle(c.env.DB)
   const body = await c.req.json()
-  const tenantId = body.tenant_id || 'ness'
+  const tenantId = body.tenant_id || DEFAULT_TENANT_ID
   const now = new Date().toISOString()
 
   const [existing] = await db.select().from(chatbot_config).where(eq(chatbot_config.tenant_id, tenantId)).limit(1)
@@ -78,7 +79,7 @@ app.put('/chatbot-config', async (c) => {
 // GET /api/chatbot-config?tenant=...
 app.get('/public/chatbot-config', async (c) => {
   const db = drizzle(c.env.DB)
-  const tenantId = c.req.query('tenant') || 'ness'
+  const tenantId = c.req.query('tenant') || DEFAULT_TENANT_ID
   const [config] = await db.select({
     bot_name: chatbot_config.bot_name,
     avatar_url: chatbot_config.avatar_url,
@@ -96,7 +97,7 @@ app.get('/public/chatbot-config', async (c) => {
 // GET /api/admin/chat-analytics?tenant_id=...
 app.get('/chat-analytics', async (c) => {
   const db = drizzle(c.env.DB)
-  const tenantId = c.req.query('tenant_id') || 'ness'
+  const tenantId = c.req.query('tenant_id') || DEFAULT_TENANT_ID
 
   const sessionsResult = await db.select({ count: count() }).from(chat_sessions).where(eq(chat_sessions.tenant_id, tenantId))
   const totalSessions = sessionsResult[0]?.count || 0
@@ -146,7 +147,7 @@ app.post('/chat-sessions/:id/csat', async (c) => {
 // GET /api/admin/chat-export?tenant_id=...&format=csv
 app.get('/chat-export', async (c) => {
   const db = drizzle(c.env.DB)
-  const tenantId = c.req.query('tenant_id') || 'ness'
+  const tenantId = c.req.query('tenant_id') || DEFAULT_TENANT_ID
 
   const sessions = await db.select().from(chat_sessions)
     .where(eq(chat_sessions.tenant_id, tenantId))
@@ -170,7 +171,7 @@ app.get('/chat-export', async (c) => {
 
 // GET /api/admin/knowledge-base?tenant_id=...
 app.get('/knowledge-base', async (c) => {
-  const tenantId = c.req.query('tenant_id') || 'ness'
+  const tenantId = c.req.query('tenant_id') || DEFAULT_TENANT_ID
   // List R2 objects in the knowledge base prefix
   const listResult = await c.env.MEDIA.list({ prefix: `kb/${tenantId}/` })
   const documents = listResult.objects.map(obj => ({
@@ -184,7 +185,7 @@ app.get('/knowledge-base', async (c) => {
 
 // POST /api/admin/knowledge-base/upload
 app.post('/knowledge-base/upload', async (c) => {
-  const tenantId = c.req.query('tenant_id') || 'ness'
+  const tenantId = c.req.query('tenant_id') || DEFAULT_TENANT_ID
   const formData = await c.req.formData()
   const file = formData.get('file') as unknown as File
   if (!file) return c.json({ error: 'No file provided' }, 400)
@@ -207,7 +208,7 @@ app.delete('/knowledge-base/*', async (c) => {
 
 // POST /api/admin/seed-vectors — ingest documents from R2 into Vectorize
 app.post('/seed-vectors', async (c) => {
-  const tenantId = c.req.query('tenant_id') || 'ness'
+  const tenantId = c.req.query('tenant_id') || DEFAULT_TENANT_ID
   const listResult = await c.env.MEDIA.list({ prefix: `kb/${tenantId}/` })
   let indexed = 0
 
