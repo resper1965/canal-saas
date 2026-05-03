@@ -15,5 +15,9 @@ export default defineConfig({
       name: 'api',
       testMatch: /api-.*\.spec\.ts/,
     },
+    {
+      name: 'admin',
+      testMatch: /admin\.spec\.ts/,
+    },
   ],
 });
