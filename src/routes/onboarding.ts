@@ -152,7 +152,6 @@ onboarding.post('/signup', async (c) => {
     }, 201)
 
   } catch (err: unknown) {
-    // console.error('[Onboarding] Signup failed:', err)
     // Handle duplicate email
     if (err.message?.includes('UNIQUE') || err.message?.includes('already exists')) {
       return c.json({ error: 'Email already registered' }, 409)

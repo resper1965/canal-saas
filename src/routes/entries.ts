@@ -352,7 +352,6 @@ entries.post('/collections/:slug/entries', async (c) => {
         })
       }
     } catch (e) {
-      // console.error('[Webhooks] Erro ao enfileirar job', e)
     }
   }
 
@@ -368,7 +367,6 @@ entries.post('/collections/:slug/entries', async (c) => {
           })
         }
       } catch(e) {
-        // console.error('[Queue Auto-SEO] Erro ao enfileirar job', e)
       }
     }
     
@@ -380,7 +378,6 @@ entries.post('/collections/:slug/entries', async (c) => {
           c.env.QUEUE.send({ type: 'translate', payload: { entryId: id, data, targetLocale: 'es', tenantId } })
         }
       } catch(e) {
-        // console.error('[Queue Auto-Translate] Erro ao agendar', e)
       }
     }
   }

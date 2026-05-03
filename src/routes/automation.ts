@@ -118,7 +118,6 @@ automationRoute.post('/apply/:job_id', async (c) => {
       await c.env.QUEUE.send({ type: 'SCORE_CV', payload: { applicantId: id, fileKey: fileKey } });
     }
   } catch (e) {
-    // console.error("Queue send failed:", e);
   }
 
   return c.json({ success: true, applicant_id: id }, 201);
@@ -156,7 +155,6 @@ automationRoute.post('/social', zValidator('json', z.object({
     try {
       await c.env.QUEUE.send({ type: 'SOCIAL_POST_DISPATCH', payload: { postId: id, platform: body.platform } });
     } catch (e) {
-      // console.error('Failed to enqueue social post:', e);
     }
   }
 
@@ -194,7 +192,6 @@ Não responda recados, vá direto para o texto do post.`;
     
     return c.json({ success: true, text: result.text });
   } catch (err) {
-    // console.error('Social draft generation error:', err);
     return c.json({ error: 'Falha na geração com IA' }, 500);
   }
 });
@@ -231,7 +228,6 @@ automationRoute.get('/github/repos', async (c) => {
     c.header('Cache-Control', 'public, max-age=3600');
     return c.json(portfolioCases);
   } catch (err: unknown) {
-    // console.error('Github Fetch Error:', err);
     return c.json({ error: 'Failed' }, 500);
   }
 });
@@ -262,7 +258,6 @@ automationRoute.get('/github/issues', async (c) => {
       
     return c.json(mapped);
   } catch (err: unknown) {
-    // console.error('Github Issues Fetch Error:', err);
     return c.json({ error: 'Failed' }, 500);
   }
 });

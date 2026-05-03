@@ -137,7 +137,6 @@ saasRoutes.post('/billing/webhook', async (c) => {
   }
 
   const type = event.type as string
-  // console.log(`[Stripe Webhook] Event: ${type}`)
 
   switch (type) {
     case 'checkout.session.completed': {
@@ -166,7 +165,6 @@ saasRoutes.post('/billing/webhook', async (c) => {
           'UPDATE organization SET metadata = ? WHERE id = ?'
         ).bind(JSON.stringify(updatedMeta), tenantId).run()
 
-        // console.log(`[Stripe] Tenant ${tenantId} upgraded to ${plan}`)
       }
       break
     }
@@ -198,7 +196,6 @@ saasRoutes.post('/billing/webhook', async (c) => {
 
     case 'invoice.payment_failed': {
       const invoice = event.data.object
-      // console.warn(`[Stripe] Payment failed for customer ${invoice.customer}`)
       // Could send email notification here
       break
     }

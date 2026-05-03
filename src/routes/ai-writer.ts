@@ -126,7 +126,6 @@ Responda APENAS com o texto solicitado, sem explicações, aspas ou formatação
 
     return result.toTextStreamResponse()
   } catch (err) {
-    // console.error('[ai-writer] Error:', err)
     return c.json({ error: 'Falha na geração. Tente novamente.' }, 500)
   }
 })

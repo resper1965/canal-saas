@@ -68,7 +68,6 @@ app.post('/dsar', async (c) => {
       }),
     })
   } catch (e) {
-    // console.error('[DSAR] Email error:', e)
   }
 
   return c.json({ success: true, protocol: id.substring(0, 8).toUpperCase(), sla_deadline: deadline.toISOString() })
