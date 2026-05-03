@@ -14,6 +14,7 @@ const EMPTY_DRAFT: Draft = { subject: "", preheader: "", audience: "todos", body
 const AUDIENCES = ["todos", "clientes", "prospects", "parceiros", "interno"];
 
 export default function NewslettersPage() {
+  const { toast } = useToast();
   const [draft, setDraft] = useState<Draft>({ ...EMPTY_DRAFT });
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [sending, setSending] = useState(false);
@@ -31,11 +32,11 @@ export default function NewslettersPage() {
 
   const handleSend = async () => {
     if (!draft.subject || !draft.body) {
-      alert("Preencha o assunto e o corpo do e-mail.");
+      toast('Preencha o assunto e o corpo do e-mail', 'error');
       return;
     }
     if (subscribers.length === 0) {
-      alert("Nenhum assinante cadastrado.");
+      toast('Nenhum assinante cadastrado', 'error');
       return;
     }
     if (!confirm(`Enviar "${draft.subject}" para ${subscribers.length} assinante(s)?`)) return;
@@ -55,12 +56,12 @@ export default function NewslettersPage() {
           ...prev,
         ]);
         setDraft({ ...EMPTY_DRAFT });
-        alert(`Newsletter enviada para ${result.sent || subscribers.length} destinatário(s)!`);
+        toast(`Newsletter enviada para ${result.sent || subscribers.length} destinatário(s)!`, 'success');
       } else {
-        alert(`Erro: ${result.error || "Falha no envio"}`);
+        toast(result.error || 'Falha no envio', 'error');
       }
     } catch {
-      alert("Erro de rede ao enviar.");
+      toast('Erro de rede ao enviar', 'error');
     } finally {
       setSending(false);
     }
@@ -86,6 +87,7 @@ export default function NewslettersPage() {
   const handleRemoveSubscriber = async (id: number) => {
     if (!confirm("Remover este assinante?")) return;
     await fetch(`/api/admin/newsletter-subscribers/${id}`, { method: "DELETE", credentials: "include" });
+    toast('Assinante removido', 'success');
     setSubscribers((prev) => prev.filter((s) => s.id !== id));
   };
 

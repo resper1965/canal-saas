@@ -17,6 +17,7 @@ interface Organization {
 
 export default function OrganizationsPage() {
   const { data: session } = authClient.useSession();
+  const { toast } = useToast();
   const [organizations, setOrgs] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -61,12 +62,13 @@ export default function OrganizationsPage() {
         body: { metadata }
       });
       if ((req.data as { success?: boolean })?.success) {
+        toast(`Plano de ${org.name} atualizado para ${plan.toUpperCase()}`, 'success');
         fetchOrganizations();
       } else {
-        alert("Erro ao atualizar plano.");
+        toast('Erro ao atualizar plano', 'error');
       }
     } catch (err: unknown) {
-      alert("Erro: " + err.message);
+      toast('Erro ao atualizar plano', 'error');
     }
   };
 
@@ -80,12 +82,13 @@ export default function OrganizationsPage() {
         baseURL: window.location.origin
       });
       if ((req.data as { success?: boolean })?.success) {
+        toast('Organização removida', 'success');
         fetchOrganizations();
       } else {
-        alert("Erro ao excluir.");
+        toast('Erro ao excluir organização', 'error');
       }
     } catch (err: unknown) {
-      alert("Erro: " + err.message);
+      toast('Erro ao excluir organização', 'error');
     }
   };
 

@@ -1,4 +1,3 @@
-import { useToast } from "../components/ui/Toast";
 import * as React from "react";
 import { BrainCircuit, CheckCircle2, XCircle, Inbox } from "lucide-react";
 import { SearchInput } from "../components/ui/SearchInput";

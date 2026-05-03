@@ -135,6 +135,7 @@ function GithubKanbanTab() {
 }
 
 export default function AutomationDashboard() {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('social');
   const [socialBrief, setSocialBrief] = useState('');
   const [socialPlatform, setSocialPlatform] = useState('linkedin');
@@ -176,11 +177,11 @@ export default function AutomationDashboard() {
           scheduled_at: isScheduled ? new Date(Date.now() + 86400000).toISOString() : undefined 
         })
       });
-      alert(isScheduled ? 'Inserido na Task Queue de 24h.' : 'Ativo Social Publicado com Sucesso.');
+      toast(isScheduled ? 'Inserido na Task Queue de 24h.' : 'Ativo Social Publicado com Sucesso.', 'success');
       setSocialDraft('');
       setSocialBrief('');
     } catch (e) {
-      alert('Erro Crítico na Publicação.');
+      toast('Erro Crítico na Publicação.', 'error');
     }
   };
 

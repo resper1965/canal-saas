@@ -93,10 +93,5 @@
 		{
 			"name": "SEND_EMAIL"
 		}
-	],
-	"email_bindings": [
-		{
-			"name": "EMAIL"
-		}
 	]
 }

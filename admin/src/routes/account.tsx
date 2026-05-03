@@ -1,8 +1,10 @@
+import { useToast } from "../components/ui/Toast";
 import React, { useState } from "react";
 import { useSession, signOut, authClient } from "../lib/auth-client";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card";
 
 export default function AccountSettingsPage() {
+  const { toast } = useToast();
   const { data: session } = useSession();
   
   // States
@@ -49,7 +51,7 @@ export default function AccountSettingsPage() {
     const { error } = await authClient.deleteUser({ password: deletePassword });
     if (error) setErrorMsg(error.message || "Ocorreu um erro");
     else {
-      alert("Conta excluída. Redirecionando...");
+      toast('Conta excluída. Redirecionando...', 'info');
       window.location.href = "/login";
     }
   };

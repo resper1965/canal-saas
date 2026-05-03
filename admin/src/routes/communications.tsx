@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { SearchInput } from "../components/ui/SearchInput";
-import { useToast } from "../components/ui/Toast";
 import { useApiResource } from "../hooks";
 
 type Message = {

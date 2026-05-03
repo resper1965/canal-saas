@@ -1,3 +1,4 @@
+import { useToast } from "../components/ui/Toast";
 import { useEffect, useState } from "react";
 import { authClient, admin } from "../lib/auth-client";
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from "../components/ui/Card";
@@ -5,6 +6,7 @@ import { Badge } from "../components/ui/Badge";
 import { isSuperAdminEmail } from "../components/dashboard/nav-config";
 
 export default function UsersPage() {
+  const { toast } = useToast();
   const { data: session } = authClient.useSession();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,14 +43,14 @@ export default function UsersPage() {
   const handleRoleChange = async (userId: string, newRole: "user" | "admin") => {
     const res = await admin.setRole({ userId, role: newRole });
     if (!res.error) fetchUsers();
-    else alert(res.error.message);
+    else toast(res.error.message, 'error');
   };
 
   const handleBan = async (userId: string, isBanned: boolean) => {
     if (!confirm(`Deseja realmente ${isBanned ? 'desbanir' : 'banir'} este usuário da infraestrutura?`)) return;
     const res = isBanned ? await admin.unbanUser({ userId }) : await admin.banUser({ userId });
     if (!res.error) fetchUsers();
-    else alert(res.error.message);
+    else toast(res.error.message, 'error');
   };
 
   if (!isSuperAdmin) {
