@@ -112,7 +112,7 @@ ${ragContext}
         await this.env.DB.prepare("DELETE FROM chat_messages WHERE session_id = ?").bind(sessionId).run();
         
         // Using batch for better DO performance
-        const batchStmts = messages.map((m: any) => 
+        const batchStmts = messages.map((m: { role: string; content: string }) => 
           this.env.DB.prepare(
             "INSERT INTO chat_messages (session_id, role, content, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)"
           ).bind(sessionId, m.role, String(m.content))
@@ -148,7 +148,7 @@ NÃO retorne texto adicional nem decorações markdown. Se não houver dados cla
 
               // Notifica o time comercial via Resend
               if (this.env.RESEND_API_KEY) {
-                const chatlog = messages.map((m: any) => {
+                const chatlog = messages.map((m: { role: string; content: string }) => {
                   const role = m.role === "user" ? "👤 Usuário" : "🤖 Gabi";
                   return `<tr><td style="padding:6px 10px;vertical-align:top;color:#888;white-space:nowrap;font-size:12px;">${role}</td><td style="padding:6px 10px;font-size:13px;color:#222;">${String(m.content).replace(/</g, "&lt;")}</td></tr>`;
                 }).join("");

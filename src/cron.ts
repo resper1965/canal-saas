@@ -1,8 +1,9 @@
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, sql, and } from 'drizzle-orm'
 import { entries, forms } from './db/schema'
+import type { Bindings } from './index'
 
-export async function cronHandler(event: ScheduledEvent, env: any) {
+export async function cronHandler(event: ScheduledEvent, env: Bindings) {
   console.log(`[Cron] Triggered at ${event.scheduledTime}`)
   const db = drizzle(env.DB)
 
@@ -41,7 +42,7 @@ export async function cronHandler(event: ScheduledEvent, env: any) {
     lastWeek.setDate(lastWeek.getDate() - 7)
     
     // Obtemos o id the collection insights primeiro (por segurança)
-    const insightCol: any = await (env.DB.prepare("SELECT id FROM collections WHERE slug = 'insights' LIMIT 1") as any).first();
+    const insightCol = await env.DB.prepare("SELECT id FROM collections WHERE slug = 'insights' LIMIT 1").first<{ id: string }>();
     if (insightCol) {
       const colId = insightCol.id;
       const recentPosts = await db.select({ title: sql`json_extract(data, '$.title')`, description: sql`json_extract(data, '$.seo_description')` })
@@ -51,7 +52,7 @@ export async function cronHandler(event: ScheduledEvent, env: any) {
       if (recentPosts && recentPosts.length > 0) {
         console.log(`[Cron] Encontrou ${recentPosts.length} posts recentes para newsletter.`)
         let digestContent = `Esses são os insights publicados pelo escritório nos últimos 7 dias:\n\n`
-        recentPosts.forEach((p: any) => digestContent += `- ${p.title} (${p.description || 'Sem descrição'})\n`)
+        recentPosts.forEach((p) => digestContent += `- ${p.title} (${(p as Record<string, unknown>).description || 'Sem descrição'})\n`)
         
         const summarizePrompt = `Você é um curador de conteúdo jurídico. Resuma de forma envolvente as seguintes publicações para ser enviado como um boletim informativo (newsletter) da semana. Comece com uma saudação breve e siga com highlights curtos.\n\nConteúdo bruto:\n${digestContent}`
         
@@ -59,7 +60,7 @@ export async function cronHandler(event: ScheduledEvent, env: any) {
           const aiResponse = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
             messages: [{ role: 'system', content: summarizePrompt }]
           })
-          const newsletterText = String((aiResponse as any).response).trim()
+          const newsletterText = String((aiResponse as { response?: string }).response ?? '').trim()
           
           console.log(`[Cron] Newsletter gerada:\n${newsletterText}`)
           

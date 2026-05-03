@@ -6,11 +6,12 @@ import { collections, getCollection } from './collections'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, and, isNull } from 'drizzle-orm'
 import * as dbSchema from './db/schema'
+import type { Bindings } from './index'
 
 declare global {
   var __MCP_DB: D1Database | undefined;
   var __MCP_TENANT: string | undefined;
-  var __MCP_ENV: any | undefined;
+  var __MCP_ENV: Bindings | undefined;
 }
 
 const server = new McpServer({
@@ -46,7 +47,7 @@ server.tool(
         })), null, 2) }]
       }
     } catch (e: unknown) {
-      return { content: [{ type: "text", text: `Erro: ${e.message}` }] }
+      return { content: [{ type: "text", text: `Erro: ${e instanceof Error ? e.message : String(e)}` }] }
     }
   }
 )
@@ -93,7 +94,7 @@ server.tool(
       }
     } catch (err: unknown) {
       return {
-        content: [{ type: "text", text: `Error fetching entries: ${err.message}` }]
+        content: [{ type: "text", text: `Error fetching entries: ${err instanceof Error ? err.message : String(err)}` }]
       }
     }
   }
@@ -157,7 +158,7 @@ server.tool(
       }
     } catch (err: unknown) {
       return {
-        content: [{ type: "text", text: `Erro: ${err.message}` }]
+        content: [{ type: "text", text: `Erro: ${err instanceof Error ? err.message : String(err)}` }]
       }
     }
   }
@@ -232,7 +233,7 @@ server.tool(
       }
     } catch (err: unknown) {
       return {
-        content: [{ type: "text", text: `Erro ao atualizar: ${err.message}` }]
+        content: [{ type: "text", text: `Erro ao atualizar: ${err instanceof Error ? err.message : String(err)}` }]
       }
     }
   }
@@ -292,7 +293,7 @@ server.tool(
       }
     } catch (err: unknown) {
       return {
-        content: [{ type: "text", text: `Erro ao deletar: ${err.message}` }]
+        content: [{ type: "text", text: `Erro ao deletar: ${err instanceof Error ? err.message : String(err)}` }]
       }
     }
   }
@@ -332,7 +333,7 @@ const transport = new WebStandardStreamableHTTPServerTransport({
 
 server.connect(transport).catch(console.error)
 
-export async function handleMcpRequest(req: Request, db: D1Database, tenantId?: string, env?: any) {
+export async function handleMcpRequest(req: Request, db: D1Database, tenantId?: string, env?: Bindings) {
   globalThis.__MCP_DB = db;
   globalThis.__MCP_TENANT = tenantId;
   globalThis.__MCP_ENV = env;

@@ -82,7 +82,7 @@ export function classifyContent(text: string): { matchedTopic: string | null; is
 export async function enforceGovernance(
   collectionSlug: string,
   contentText: string,
-  env?: any
+  env?: Pick<import('./index').Bindings, 'AI'>
 ): Promise<GovernanceDecision> {
   const col = getCollection(collectionSlug)
   if (!col) {
@@ -145,7 +145,7 @@ export async function enforceGovernance(
         }
       }
     } catch (e: unknown) {
-      console.warn('[Governance] AI fallback failed, continuing to auto-publish if regex passed:', e.message);
+      console.warn('[Governance] AI fallback failed, continuing to auto-publish if regex passed:', e instanceof Error ? e.message : String(e));
     }
   }
 

@@ -5,13 +5,21 @@ import { drizzle } from 'drizzle-orm/d1'
 import { webhooks_targets, entries, knowledge_base } from './db/schema'
 import * as schema from './db/schema'
 import { eq } from 'drizzle-orm'
+import type { Bindings } from './index'
+
+/** Workers AI text generation response */
+type AiTextResponse = { response?: string }
+
+/** Workers AI embeddings response */
+type AiEmbeddingResponse = { data: number[][] }
 
 export interface QueueMessage {
   type: 'generate-draft' | 'audit-content' | 'translate' | 'vectorize-entry' | 'webhook-dispatch' | 'SCORE_CV' | 'SEND_NEWSLETTER' | 'SOCIAL_POST_DISPATCH' | 'vectorize-document' | 'generate-seo' | 'generate-social-caption' | 'send-email' | 'process-resume'
-  payload: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- payload shapes vary by message type; typed at each switch case
+  payload: Record<string, any>
 }
 
-export async function queueHandler(batch: MessageBatch<QueueMessage>, env: EnvWithAI & { DB: any; VECTORIZE: VectorizeIndex; MEDIA: R2Bucket; RESEND_API_KEY?: string }) {
+export async function queueHandler(batch: MessageBatch<QueueMessage>, env: Bindings & EnvWithAI) {
   for (const message of batch.messages) {
     try {
       console.log(`[Queue] Processing message type: ${message.body.type}`)
@@ -58,7 +66,7 @@ export async function queueHandler(batch: MessageBatch<QueueMessage>, env: EnvWi
               messages: [{ role: 'system', content: prompt }]
             });
             
-            const rawResponse = String((aiResponse as any).response);
+            const rawResponse = String((aiResponse as AiTextResponse).response ?? '');
             const jsonText = rawResponse.replace(/```json/g, '').replace(/```/g, '').trim();
             
             let parsedData = { ai_score: 50, ai_summary: 'Falha ao extrair sumário.' };
@@ -117,7 +125,7 @@ export async function queueHandler(batch: MessageBatch<QueueMessage>, env: EnvWi
               text: chunks
             })
             // data is Array of arrays
-            const embeddings = (embeddingsObj as any).data
+            const embeddings = (embeddingsObj as AiEmbeddingResponse).data
             
             const vectors = chunks.map((chunk, index) => ({
               id: `${id}-chunk-${index}`,
@@ -168,7 +176,7 @@ export async function queueHandler(batch: MessageBatch<QueueMessage>, env: EnvWi
               messages: [{ role: 'system', content: prompt }]
             })
             
-            const jsonText = String((aiResponse as any).response).replace(/```json/g, '').replace(/```/g, '').trim()
+            const jsonText = String((aiResponse as AiTextResponse).response ?? '').replace(/```json/g, '').replace(/```/g, '').trim()
             let seoData = { seo_title: '', seo_description: '' }
             try {
               seoData = JSON.parse(jsonText)
@@ -259,7 +267,7 @@ export async function queueHandler(batch: MessageBatch<QueueMessage>, env: EnvWi
               ]
             })
 
-            const caption = String((aiResponse as any).response).trim()
+            const caption = String((aiResponse as AiTextResponse).response ?? '').trim()
             
             const db = drizzle(env.DB)
             const [originalRow] = await db.select().from(entries).where(eq(entries.id, entryId)).limit(1)
@@ -293,7 +301,7 @@ export async function queueHandler(batch: MessageBatch<QueueMessage>, env: EnvWi
                 { role: 'system', content: 'You are a technical recruiter AI. Analyze this candidate application and return a strict JSON with "score" (0-100) and "summary" (short reason).' },
                 { role: 'user', content: 'Attached resume: ' + fileKey }
               ]
-            } as any);
+            } as Record<string, unknown>);
             
             const jsonText = String(aiResponse.response).replace(/```json/g, '').replace(/```/g, '').trim();
             const result = JSON.parse(jsonText);

@@ -17,7 +17,7 @@ export const docs = new Hono<DocsEnv>()
 docs.get('/openapi.json', (c) => {
   const baseUrl = c.env.BETTER_AUTH_URL || 'https://canal.bekaa.eu'
   
-  const paths: Record<string, any> = {
+  const paths: Record<string, Record<string, unknown>> = {
     '/api/v1/collections': {
       get: {
         tags: ['Collections'],
@@ -171,7 +171,7 @@ docs.get('/openapi.json', (c) => {
   }
 
   // Build entry schemas from collection definitions
-  const schemas: Record<string, any> = {
+  const schemas: Record<string, Record<string, unknown>> = {
     Collection: {
       type: 'object',
       properties: {
@@ -221,7 +221,7 @@ docs.get('/openapi.json', (c) => {
       number: 'number', boolean: 'boolean', json: 'object',
     }
 
-    const props: Record<string, any> = {
+    const props: Record<string, Record<string, unknown>> = {
       id: { type: 'string', format: 'uuid' },
       slug: { type: 'string' },
       locale: { type: 'string' },
@@ -229,12 +229,12 @@ docs.get('/openapi.json', (c) => {
       createdAt: { type: 'string', format: 'date-time' },
       updatedAt: { type: 'string', format: 'date-time' },
     }
-    const createProps: Record<string, any> = {}
+    const createProps: Record<string, Record<string, unknown>> = {}
     const required: string[] = []
 
     for (const field of col.fields) {
       const jsonType = fieldTypeMap[field.type] || 'string'
-      const fieldDef: any = { type: jsonType }
+      const fieldDef: Record<string, unknown> = { type: jsonType }
       if (field.label) fieldDef.description = field.label
       if (field.options) fieldDef.enum = field.options
       if (field.defaultValue !== undefined) fieldDef.default = field.defaultValue

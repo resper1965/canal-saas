@@ -18,13 +18,14 @@ import { apiKey } from "@better-auth/api-key";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { drizzle } from "drizzle-orm/d1";
 import { sendEmail, welcomeEmail } from "./email";
+import type { Bindings } from "./index";
 
 // Factory: cria instância por request para injetar o binding D1 do Cloudflare
 export function createAuth(
   db: D1Database,
   secret: string,
   baseURL: string,
-  opts?: { googleClientId?: string; googleClientSecret?: string; sendEmailBinding?: any; EMAIL?: any; SEND_EMAIL?: any; kv?: KVNamespace }
+  opts?: { googleClientId?: string; googleClientSecret?: string; sendEmailBinding?: Bindings['SEND_EMAIL']; EMAIL?: Bindings['EMAIL']; SEND_EMAIL?: Bindings['SEND_EMAIL']; kv?: KVNamespace }
 ) {
   const drizzleDb = drizzle(db);
 

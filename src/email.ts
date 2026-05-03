@@ -20,8 +20,14 @@ interface SendEmailOptions {
   from?: { name: string; email: string };
 }
 
+/** Cloudflare Email binding interface */
+interface EmailBinding {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- CF binding accepts EmailMessage or JSON object
+  send(msg: any): Promise<void>
+}
+
 export async function sendEmail(
-  env: { EMAIL?: any; SEND_EMAIL?: any },
+  env: { EMAIL?: EmailBinding; SEND_EMAIL?: EmailBinding },
   options: SendEmailOptions
 ): Promise<{ success: boolean; error?: string }> {
   const { to, subject, html, text, from = DEFAULT_SENDER } = options;
