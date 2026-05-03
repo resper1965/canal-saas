@@ -12,7 +12,6 @@ import { createAuth } from '../auth'
 import { upsertVector, deleteVector } from '../vectorize-sync'
 import { sanitizeEntryData } from '../security'
 import type { EntryRow } from '../types'
-import { z } from 'zod'
 
 type Env = {
   Bindings: {

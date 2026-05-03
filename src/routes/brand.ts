@@ -29,7 +29,7 @@ const BRAND_CONFIG: Record<string, any> = {
   },
 }
 
-export const brandRouter = new Hono<{ Bindings: Bindings, Variables: { tenantId?: string, session?: { user: { role: string; email: string }; session: { activeOrganizationId?: string } } } }>()
+export const brandRouter = new Hono<{ Bindings: Bindings, Variables: { tenantId?: string, session?: { user: { role: string; email: string; name?: string }; session: { activeOrganizationId?: string } } } }>()
 
 // T5.5.2 API pública estática para o Brandbook
 brandRouter.get('/assets', async (c) => {

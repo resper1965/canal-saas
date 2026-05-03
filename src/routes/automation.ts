@@ -211,8 +211,8 @@ automationRoute.get('/github/repos', async (c) => {
     
     // Filter out forks and map to Bento grid properties
     const portfolioCases = repos
-      .filter((repo: Record<string, unknown>) => !repo.fork && repo.name !== 'resper1965') // Hide profile readme and forks
-      .map((repo: Record<string, unknown>) => ({
+      .filter((repo: any) => !repo.fork && repo.name !== 'resper1965') // Hide profile readme and forks
+      .map((repo: any) => ({
         slug: repo.name,
         project: repo.name,
         client: 'Open Source',
@@ -246,8 +246,8 @@ automationRoute.get('/github/issues', async (c) => {
     const issues = await res.json() as Record<string, unknown>[];
     
     const mapped = issues
-      .filter((i: Record<string, unknown>) => !i.pull_request)
-      .map((issue: Record<string, unknown>) => ({
+      .filter((i: any) => !i.pull_request)
+      .map((issue: any) => ({
         id: issue.number,
         title: issue.title,
         status: issue.state === 'closed' ? 'done' : (issue.assignees?.length > 0 ? 'in-progress' : 'todo'),

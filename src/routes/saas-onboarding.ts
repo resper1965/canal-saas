@@ -141,8 +141,8 @@ saasRoutes.post('/billing/webhook', async (c) => {
   switch (type) {
     case 'checkout.session.completed': {
       const session = event.data.object
-      const tenantId = session.metadata?.tenantId
-      const plan = session.metadata?.plan
+      const tenantId = (session as any).metadata?.tenantId
+      const plan = (session as any).metadata?.plan
       const customerId = session.customer
 
       if (tenantId && customerId) {
@@ -181,7 +181,7 @@ saasRoutes.post('/billing/webhook', async (c) => {
       ).bind(`%${customerId}%`).all()
 
       for (const org of orgs.results || []) {
-        const meta = JSON.parse((org as Record<string, unknown>).metadata || '{}')
+        const meta = JSON.parse(((org as any).metadata as string) || '{}')
         meta.subscriptionActive = isActive
         if (!isActive) {
           meta.plan = 'free'

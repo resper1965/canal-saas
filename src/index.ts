@@ -181,9 +181,9 @@ app.use('/*', cors({
       if (cached) return origin
 
       const hostname = new URL(origin).hostname
-      const row = await c.env.DB.prepare(
+      const row = (await c.env.DB.prepare(
         'SELECT tenant_id FROM tenant_domains WHERE domain = ? AND verified = 1 LIMIT 1'
-      ).bind(hostname).first<{ tenant_id: string }>()
+      ).bind(hostname).first()) as { tenant_id: string } | null
 
       if (row) {
         c.executionCtx.waitUntil(c.env.CANAL_KV.put(`cors:${origin}`, row.tenant_id, { expirationTtl: 300 }))
@@ -413,9 +413,8 @@ app.get('/media/:filename', async (c) => {
   const width = c.req.query('w') || '1200'
   const quality = c.req.query('q') || '85'
 
-  const imageRequest = new Request(imageUrl, {
+  const requestInit = {
     headers: c.req.raw.headers,
-    // @ts-ignore — cf.image requires Workers Pro/Business
     cf: {
       image: {
         width: parseInt(width),
@@ -423,7 +422,9 @@ app.get('/media/:filename', async (c) => {
         quality: parseInt(quality),
       }
     }
-  } as RequestInit)
+  } as unknown as RequestInit;
+
+  const imageRequest = new Request(imageUrl, requestInit)
 
   try {
     const res = await fetch(imageRequest)

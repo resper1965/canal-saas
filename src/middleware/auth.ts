@@ -5,6 +5,7 @@
  */
 import { Context } from 'hono'
 import type { Bindings, Variables } from '../index'
+import type { AuthSession, AgentSession } from '../types/bindings'
 import { getAuth } from './context'
 import { hashApiKey } from '../security'
 
@@ -18,7 +19,7 @@ export async function requireSession(c: Ctx, next: () => Promise<void>) {
 
   const tenantId = c.req.header('x-tenant-id') || session?.session?.activeOrganizationId || undefined
   c.set('tenantId', tenantId)
-  c.set('session', session)
+  c.set('session', session as unknown as AuthSession)
   await next()
 }
 
@@ -34,7 +35,7 @@ export async function requireAdminOrKey(c: Ctx, next: () => Promise<void>) {
 
   const agentSession = await auth.api.getAgentSession?.({ headers: c.req.raw.headers }).catch(() => null)
   if (agentSession) {
-    c.set('agentSession', agentSession)
+    c.set('agentSession', agentSession as unknown as AgentSession)
     await next()
     return
   }
@@ -43,7 +44,7 @@ export async function requireAdminOrKey(c: Ctx, next: () => Promise<void>) {
   if (!session) return c.json({ error: 'Unauthorized' }, 401)
   const tenantId = c.req.header('x-tenant-id') || session?.session?.activeOrganizationId || undefined
   c.set('tenantId', tenantId)
-  c.set('session', session)
+  c.set('session', session as unknown as AuthSession)
   await next()
 }
 
@@ -91,7 +92,7 @@ export async function resolveApiKeyOrSession(c: Ctx, next: () => Promise<void>) 
   if (session) {
     const tenantId = session?.session?.activeOrganizationId || undefined
     c.set('tenantId', tenantId)
-    c.set('session', session)
+    c.set('session', session as unknown as AuthSession)
   }
   await next()
 }

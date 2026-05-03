@@ -153,9 +153,10 @@ onboarding.post('/signup', async (c) => {
 
   } catch (err: unknown) {
     // Handle duplicate email
-    if (err.message?.includes('UNIQUE') || err.message?.includes('already exists')) {
+    const e = err as any;
+    if (e.message?.includes('UNIQUE') || e.message?.includes('already exists')) {
       return c.json({ error: 'Email already registered' }, 409)
     }
-    return c.json({ error: err.message || 'Internal error' }, 500)
+    return c.json({ error: e.message || 'Internal error' }, 500)
   }
 })
