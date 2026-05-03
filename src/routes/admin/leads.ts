@@ -43,20 +43,24 @@ leadsRouter.delete('/applicants/:id', async (c) => {
   return c.json({ success: true })
 })
 
-// ── Forms (no tenant_id column in schema) ──────────────────────
+// ── Forms (tenant-scoped) ──────────────────────────────────────
 leadsRouter.get('/forms', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const db = getDb(c)
+  const tenantId = getTenantId(c)
   const results = await db.select().from(schema.forms)
+    .where(eq(schema.forms.tenant_id, tenantId))
     .orderBy(desc(schema.forms.created_at)).limit(50)
   return c.json(results)
 })
 
-// ── Chats (no tenant_id column in schema) ──────────────────────
+// ── Chats (tenant-scoped) ──────────────────────────────────────
 leadsRouter.get('/chats', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const db = getDb(c)
+  const tenantId = getTenantId(c)
   const results = await db.select().from(schema.chats)
+    .where(eq(schema.chats.tenant_id, tenantId))
     .orderBy(desc(schema.chats.updated_at)).limit(50)
   return c.json(results)
 })
@@ -107,11 +111,11 @@ leadsRouter.get('/stats', async (c) => {
 
   const [leadsCount, formsCount, chatsCount, published, newLeads, newForms, posts, cases, jobs, users] = await Promise.all([
     c.env.DB.prepare('SELECT COUNT(*) as c FROM leads WHERE tenant_id = ?').bind(t).first<{c:number}>(),
-    c.env.DB.prepare('SELECT COUNT(*) as c FROM forms').first<{c:number}>(),
-    c.env.DB.prepare('SELECT COUNT(*) as c FROM chats').first<{c:number}>(),
+    c.env.DB.prepare('SELECT COUNT(*) as c FROM forms WHERE tenant_id = ?').bind(t).first<{c:number}>(),
+    c.env.DB.prepare('SELECT COUNT(*) as c FROM chats WHERE tenant_id = ?').bind(t).first<{c:number}>(),
     c.env.DB.prepare("SELECT COUNT(*) as c FROM entries WHERE status='published' AND tenant_id = ?").bind(t).first<{c:number}>(),
     c.env.DB.prepare("SELECT COUNT(*) as c FROM leads WHERE status='new' AND tenant_id = ?").bind(t).first<{c:number}>(),
-    c.env.DB.prepare("SELECT COUNT(*) as c FROM forms WHERE status='new'").first<{c:number}>(),
+    c.env.DB.prepare("SELECT COUNT(*) as c FROM forms WHERE status='new' AND tenant_id = ?").bind(t).first<{c:number}>(),
     c.env.DB.prepare("SELECT COUNT(*) as c FROM entries e JOIN collections col ON e.collection_id = col.id WHERE col.slug = 'insights' AND e.tenant_id = ?").bind(t).first<{c:number}>(),
     c.env.DB.prepare("SELECT COUNT(*) as c FROM entries e JOIN collections col ON e.collection_id = col.id WHERE col.slug = 'cases' AND e.tenant_id = ?").bind(t).first<{c:number}>(),
     c.env.DB.prepare("SELECT COUNT(*) as c FROM entries e JOIN collections col ON e.collection_id = col.id WHERE col.slug = 'jobs' AND e.tenant_id = ?").bind(t).first<{c:number}>(),

@@ -62,6 +62,7 @@ export const leads = sqliteTable('leads', {
 
 export const forms = sqliteTable('forms', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant_id: text('tenant_id').default('ness'),
   payload: text('payload'),
   source: text('source'),
   status: text('status').default('new'),
@@ -70,6 +71,7 @@ export const forms = sqliteTable('forms', {
 
 export const chats = sqliteTable('chats', {
   session_id: text('session_id').primaryKey(),
+  tenant_id: text('tenant_id').default('ness'),
   messages: text('messages'),
   created_at: text('created_at').default('CURRENT_TIMESTAMP'),
   updated_at: text('updated_at')
