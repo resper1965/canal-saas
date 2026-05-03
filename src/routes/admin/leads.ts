@@ -1,11 +1,13 @@
 /**
  * Admin — Leads, Forms, Chats, Applicants, Stats, Activity
+ *
+ * ALL queries are tenant-scoped via getTenantId() to prevent cross-tenant data leakage.
  */
 import { Hono } from 'hono'
-import { desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { UpdateStatusSchema } from '../../schemas'
 import type { AdminEnv } from './_shared'
-import { assertAdmin, getDb, schema } from './_shared'
+import { assertAdmin, getDb, getTenantId, schema } from './_shared'
 
 export const leadsRouter = new Hono<AdminEnv>()
 
@@ -13,7 +15,9 @@ export const leadsRouter = new Hono<AdminEnv>()
 leadsRouter.get('/applicants', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const db = getDb(c)
+  const tenantId = getTenantId(c)
   const results = await db.select().from(schema.applicants)
+    .where(eq(schema.applicants.tenant_id, tenantId))
     .orderBy(desc(schema.applicants.created_at)).limit(100)
   return c.json(results)
 })
@@ -23,7 +27,9 @@ leadsRouter.patch('/applicants/:id', async (c) => {
   const id = c.req.param('id')
   const { status } = UpdateStatusSchema.parse(await c.req.json())
   const db = getDb(c)
-  await db.update(schema.applicants).set({ status }).where(eq(schema.applicants.id, id))
+  const tenantId = getTenantId(c)
+  await db.update(schema.applicants).set({ status })
+    .where(and(eq(schema.applicants.id, id), eq(schema.applicants.tenant_id, tenantId)))
   return c.json({ success: true })
 })
 
@@ -31,11 +37,13 @@ leadsRouter.delete('/applicants/:id', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
   const db = getDb(c)
-  await db.delete(schema.applicants).where(eq(schema.applicants.id, id))
+  const tenantId = getTenantId(c)
+  await db.delete(schema.applicants)
+    .where(and(eq(schema.applicants.id, id), eq(schema.applicants.tenant_id, tenantId)))
   return c.json({ success: true })
 })
 
-// ── Forms ───────────────────────────────────────────────────────
+// ── Forms (no tenant_id column in schema) ──────────────────────
 leadsRouter.get('/forms', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const db = getDb(c)
@@ -44,7 +52,7 @@ leadsRouter.get('/forms', async (c) => {
   return c.json(results)
 })
 
-// ── Chats ───────────────────────────────────────────────────────
+// ── Chats (no tenant_id column in schema) ──────────────────────
 leadsRouter.get('/chats', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const db = getDb(c)
@@ -58,8 +66,14 @@ leadsRouter.get('/leads', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const status = c.req.query('status')
   const db = getDb(c)
-  const q = db.select().from(schema.leads).orderBy(desc(schema.leads.created_at)).limit(100)
-  const results = status ? await q.where(eq(schema.leads.status, status)) : await q
+  const tenantId = getTenantId(c)
+  const tenantFilter = eq(schema.leads.tenant_id, tenantId)
+  const where = status
+    ? and(tenantFilter, eq(schema.leads.status, status))
+    : tenantFilter
+  const results = await db.select().from(schema.leads)
+    .where(where)
+    .orderBy(desc(schema.leads.created_at)).limit(100)
   return c.json(results)
 })
 
@@ -68,9 +82,10 @@ leadsRouter.patch('/leads/:id', async (c) => {
   const id = parseInt(c.req.param('id'), 10)
   const { status } = UpdateStatusSchema.parse(await c.req.json())
   const db = getDb(c)
+  const tenantId = getTenantId(c)
   await db.update(schema.leads)
     .set({ status, updated_at: new Date().toISOString() })
-    .where(eq(schema.leads.id, id))
+    .where(and(eq(schema.leads.id, id), eq(schema.leads.tenant_id, tenantId)))
   return c.json({ success: true })
 })
 
@@ -78,32 +93,36 @@ leadsRouter.delete('/leads/:id', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
   const id = parseInt(c.req.param('id'), 10)
   const db = getDb(c)
-  await db.delete(schema.leads).where(eq(schema.leads.id, id))
+  const tenantId = getTenantId(c)
+  await db.delete(schema.leads)
+    .where(and(eq(schema.leads.id, id), eq(schema.leads.tenant_id, tenantId)))
   return c.json({ success: true })
 })
 
-// ── Dashboard Stats ─────────────────────────────────────────────
+// ── Dashboard Stats (tenant-scoped) ─────────────────────────────
 leadsRouter.get('/stats', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  const tenantId = getTenantId(c)
+  const t = tenantId
 
   const [leadsCount, formsCount, chatsCount, published, newLeads, newForms, posts, cases, jobs, users] = await Promise.all([
-    c.env.DB.prepare('SELECT COUNT(*) as c FROM leads').first<{c:number}>(),
+    c.env.DB.prepare('SELECT COUNT(*) as c FROM leads WHERE tenant_id = ?').bind(t).first<{c:number}>(),
     c.env.DB.prepare('SELECT COUNT(*) as c FROM forms').first<{c:number}>(),
     c.env.DB.prepare('SELECT COUNT(*) as c FROM chats').first<{c:number}>(),
-    c.env.DB.prepare("SELECT COUNT(*) as c FROM entries WHERE status='published'").first<{c:number}>(),
-    c.env.DB.prepare("SELECT COUNT(*) as c FROM leads WHERE status='new'").first<{c:number}>(),
+    c.env.DB.prepare("SELECT COUNT(*) as c FROM entries WHERE status='published' AND tenant_id = ?").bind(t).first<{c:number}>(),
+    c.env.DB.prepare("SELECT COUNT(*) as c FROM leads WHERE status='new' AND tenant_id = ?").bind(t).first<{c:number}>(),
     c.env.DB.prepare("SELECT COUNT(*) as c FROM forms WHERE status='new'").first<{c:number}>(),
-    c.env.DB.prepare("SELECT COUNT(*) as c FROM entries e JOIN collections col ON e.collection_id = col.id WHERE col.slug = 'insights'").first<{c:number}>(),
-    c.env.DB.prepare("SELECT COUNT(*) as c FROM entries e JOIN collections col ON e.collection_id = col.id WHERE col.slug = 'cases'").first<{c:number}>(),
-    c.env.DB.prepare("SELECT COUNT(*) as c FROM entries e JOIN collections col ON e.collection_id = col.id WHERE col.slug = 'jobs'").first<{c:number}>(),
+    c.env.DB.prepare("SELECT COUNT(*) as c FROM entries e JOIN collections col ON e.collection_id = col.id WHERE col.slug = 'insights' AND e.tenant_id = ?").bind(t).first<{c:number}>(),
+    c.env.DB.prepare("SELECT COUNT(*) as c FROM entries e JOIN collections col ON e.collection_id = col.id WHERE col.slug = 'cases' AND e.tenant_id = ?").bind(t).first<{c:number}>(),
+    c.env.DB.prepare("SELECT COUNT(*) as c FROM entries e JOIN collections col ON e.collection_id = col.id WHERE col.slug = 'jobs' AND e.tenant_id = ?").bind(t).first<{c:number}>(),
     c.env.DB.prepare('SELECT COUNT(*) as c FROM user').first<{c:number}>(),
   ])
 
   const { results: weeklyLeads } = await c.env.DB.prepare(
     `SELECT DATE(created_at) as day, COUNT(*) as count
-     FROM leads WHERE created_at >= DATE('now', '-7 days')
+     FROM leads WHERE created_at >= DATE('now', '-7 days') AND tenant_id = ?
      GROUP BY DATE(created_at) ORDER BY day ASC`
-  ).all()
+  ).bind(t).all()
 
   return c.json({
     totalLeads: leadsCount?.c || 0, newLeads: newLeads?.c || 0,
@@ -115,16 +134,17 @@ leadsRouter.get('/stats', async (c) => {
   })
 })
 
-// ── Activity Feed ───────────────────────────────────────────────
+// ── Activity Feed (tenant-scoped) ───────────────────────────────
 leadsRouter.get('/activity', async (c) => {
   if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  const tenantId = getTenantId(c)
   const { results } = await c.env.DB.prepare(`
-    SELECT 'lead' as type, name as title, source, status, created_at FROM leads
+    SELECT 'lead' as type, name as title, source, status, created_at FROM leads WHERE tenant_id = ?1
     UNION ALL
-    SELECT 'form' as type, source as title, source, status, created_at FROM forms
+    SELECT 'form' as type, source as title, source, status, created_at FROM forms WHERE tenant_id = ?1
     UNION ALL
-    SELECT 'chat' as type, session_id as title, 'chatbot' as source, 'active' as status, updated_at as created_at FROM chats
+    SELECT 'chat' as type, session_id as title, 'chatbot' as source, 'active' as status, updated_at as created_at FROM chats WHERE tenant_id = ?1
     ORDER BY created_at DESC LIMIT 15
-  `).all()
+  `).bind(tenantId).all()
   return c.json(results || [])
 })
