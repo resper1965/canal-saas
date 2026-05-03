@@ -13,6 +13,18 @@ export default defineConfig({
       output: {
         manualChunks(id: string) {
           if (id.includes('@react-pdf/renderer')) return 'react-pdf';
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router')) {
+            return 'vendor-react';
+          }
+          if (id.includes('node_modules/lucide-react/') || id.includes('node_modules/recharts/')) {
+            return 'vendor-ui';
+          }
+          if (id.includes('node_modules/@better-auth/') || id.includes('node_modules/@better-fetch/')) {
+            return 'vendor-auth';
+          }
+          if (id.includes('node_modules/framer-motion/')) {
+            return 'vendor-motion';
+          }
         },
       },
     },

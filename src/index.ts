@@ -300,7 +300,10 @@ app.use('/api/v1/*', rateLimiter())
 app.use('/api/v1/*', async (c, next) => {
   const method = c.req.method
   if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
-    await next(); return
+    // Add Edge Caching headers for GET operations (s-maxage=60 -> Cache in CDN for 60s, stale-while-revalidate=300 -> Serve stale while fetching)
+    c.header('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
+    await next()
+    return
   }
   const origin = c.req.header('Origin')
   if (origin && !isValidOrigin(origin)) {
