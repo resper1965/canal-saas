@@ -139,11 +139,19 @@ NÃO retorne texto adicional nem decorações markdown. Se não houver dados cla
 
           const text = extraction.text.trim().replace(/^\\s*```json\\n?|```\\s*$/g, '');
           if (text !== "NULL" && text.startsWith("{")) {
-            const data = JSON.parse(text);
-            if (data.name && data.contact) {
+            // Zod validation: prevent prompt injection from generating malicious JSON
+            const leadSchema = z.object({
+              name: z.string().max(100),
+              contact: z.string().max(200),
+              intent: z.string().max(500).optional().default("Contato"),
+              urgency: z.enum(["baixa", "media", "alta"]).default("media"),
+            });
+            const parsed = leadSchema.safeParse(JSON.parse(text));
+            if (parsed.success) {
+              const data = parsed.data;
               await this.env.DB.prepare(
-                "INSERT INTO leads (name, contact, source, intent, urgency, tenant_id) VALUES (?, ?, 'chatbot', ?, ?, 'org-global-01')"
-              ).bind(data.name, data.contact, data.intent || "Contato", data.urgency || "media").run();
+                "INSERT INTO leads (name, contact, source, intent, urgency, tenant_id) VALUES (?, ?, 'chatbot', ?, ?, ?)"
+              ).bind(data.name, data.contact, data.intent, data.urgency, tenantId).run();
               console.log("[BG LEAD CAPTURED]", data);
 
               // Notifica o time comercial via Resend

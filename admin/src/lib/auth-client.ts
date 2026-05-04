@@ -1,6 +1,7 @@
 import { createAuthClient } from "better-auth/react";
 import { adminClient, organizationClient } from "better-auth/client/plugins";
 import { apiKeyClient } from "@better-auth/api-key/client";
+import { ac, roles } from "@shared/permissions";
 
 // Detecta automaticamente a URL base do host atual
 // Em produção: https://canal.ness.com.br
@@ -11,9 +12,10 @@ export const authClient = createAuthClient({
   baseURL,
   plugins: [
     adminClient(),
-    organizationClient(),
+    organizationClient({ ac, roles }),
     apiKeyClient()
   ]
 });
 
 export const { signIn, signUp, signOut, useSession, organization, admin, apiKey } = authClient;
+

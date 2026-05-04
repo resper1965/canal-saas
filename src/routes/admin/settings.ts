@@ -1,5 +1,6 @@
 /**
  * Admin — Settings (API Keys, Domains, Health, AI Settings)
+ * RBAC: requirePermission() for granular access control.
  */
 import { Hono } from 'hono'
 import { desc, eq, like, sql } from 'drizzle-orm'
@@ -7,12 +8,13 @@ import { hashApiKey } from '../../security'
 import { safeParse, CreateApiKeySchema, CreateDomainSchema, UpdateAiSettingsSchema } from '../../schemas'
 import { DEFAULT_TENANT_ID } from '../../config'
 import type { AdminEnv } from './_shared'
-import { assertAdmin, getDb, schema } from './_shared'
+import { requirePermission, logAudit, getDb, schema } from './_shared'
 
 export const settingsRouter = new Hono<AdminEnv>()
 
 // ── API Keys ────────────────────────────────────────────────────
 settingsRouter.get('/api-keys/:orgId', async (c) => {
+  if (!(await requirePermission(c, { settings: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const orgId = c.req.param('orgId')
   const db = getDb(c)
   const results = await db.select({
@@ -27,7 +29,7 @@ settingsRouter.get('/api-keys/:orgId', async (c) => {
 })
 
 settingsRouter.post('/api-keys', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { settings: ['update'] }))) return c.json({ error: 'Forbidden' }, 403)
   const parsed = safeParse(CreateApiKeySchema, await c.req.json())
   if (!parsed.success) return c.json({ error: parsed.error }, 400)
   const { name, orgId } = parsed.data
@@ -46,19 +48,22 @@ settingsRouter.post('/api-keys', async (c) => {
     createdAt: now,
   })
 
+  logAudit(c, 'create', 'api-key', id, `name: ${name}`)
   return c.json({ id, name, prefix, key: rawKey, createdAt: now }, 201)
 })
 
 settingsRouter.delete('/api-keys/:id', async (c) => {
+  if (!(await requirePermission(c, { settings: ['update'] }))) return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
   const db = getDb(c)
   await db.delete(schema.apikey).where(eq(schema.apikey.id, id))
+  logAudit(c, 'delete', 'api-key', id)
   return c.json({ success: true })
 })
 
 // ── Tenant Domains ──────────────────────────────────────────────
 settingsRouter.get('/domains', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { settings: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = c.get('tenantId')
   const db = getDb(c)
   const query = tenantId
@@ -68,7 +73,7 @@ settingsRouter.get('/domains', async (c) => {
 })
 
 settingsRouter.post('/domains', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { settings: ['update'] }))) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = c.get('tenantId')
   if (!tenantId) return c.json({ error: 'No active organization' }, 400)
 
@@ -93,6 +98,7 @@ settingsRouter.post('/domains', async (c) => {
     throw e
   }
 
+  logAudit(c, 'create', 'domain', id, `domain: ${cleanDomain}`)
   return c.json({
     id, domain: cleanDomain, verified: false,
     verification: {
@@ -105,7 +111,7 @@ settingsRouter.post('/domains', async (c) => {
 })
 
 settingsRouter.post('/domains/:id/verify', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { settings: ['update'] }))) return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
   const db = getDb(c)
 
@@ -140,20 +146,22 @@ settingsRouter.post('/domains/:id/verify', async (c) => {
     await c.env.CANAL_KV.delete(`cors:http://${record.domain}`)
   } catch {}
 
+  logAudit(c, 'verify', 'domain', id, `domain: ${record.domain}`)
   return c.json({ success: true, verified: true, domain: record.domain })
 })
 
 settingsRouter.delete('/domains/:id', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { settings: ['update'] }))) return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
   const db = getDb(c)
   await db.delete(schema.tenant_domains).where(eq(schema.tenant_domains.id, id))
+  logAudit(c, 'delete', 'domain', id)
   return c.json({ success: true })
 })
 
 // ── System Health ───────────────────────────────────────────────
 settingsRouter.get('/health', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { settings: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const checks: Record<string, { status: 'ok' | 'degraded' | 'error'; latency_ms?: number }> = {}
 
   const t0 = Date.now()
@@ -173,7 +181,7 @@ settingsRouter.get('/health', async (c) => {
 
 // ── AI Settings ─────────────────────────────────────────────────
 settingsRouter.get('/ai-settings', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { automation: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const db = getDb(c)
   const [config] = await db.select().from(schema.chatbot_config).where(eq(schema.chatbot_config.tenant_id, tenantId)).limit(1)
@@ -194,7 +202,7 @@ settingsRouter.get('/ai-settings', async (c) => {
 })
 
 settingsRouter.put('/ai-settings', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { automation: ['configure'] }))) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const db = getDb(c)
 
@@ -223,11 +231,12 @@ settingsRouter.put('/ai-settings', async (c) => {
     })
   }
 
+  logAudit(c, 'update', 'ai-settings')
   return c.json({ success: true })
 })
 
 settingsRouter.get('/ai-stats', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { automation: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const db = getDb(c)
   const [totalChats, totalLeads, recentChats] = await Promise.all([
     db.select({ c: sql<number>`COUNT(*)` }).from(schema.chats),

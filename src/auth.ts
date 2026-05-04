@@ -19,6 +19,7 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { drizzle } from "drizzle-orm/d1";
 import { sendEmail, welcomeEmail } from "./email";
 import type { Bindings } from "./index";
+import { ac, roles } from "./auth/permissions";
 
 // Factory: cria instância por request para injetar o binding D1 do Cloudflare
 export function createAuth(
@@ -120,21 +121,18 @@ export function createAuth(
         defaultRole: "user",
       }),
 
-      // Organization Plugin (Multi-tenancy p/ SaaS Platforms)
+      // Organization Plugin (Multi-tenancy + RBAC)
       organization({
+         ac,
+         roles,
          allowUserToCreateOrganization: true,
          creatorRole: "owner",
          
-         // Isolamento organizacional em níveis de times ("Squads") e acesso rigoroso
          teams: {
            enabled: true,
            maximumTeams: 20,
          },
-         dynamicAccessControl: {
-           enabled: true, // Libera customização de cargos/roles via Roles API
-         },
 
-         // Extendemos o esquema SaaS nativo sugerido no implementation plan
          schema: {
            organization: {
              additionalFields: {

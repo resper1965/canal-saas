@@ -14,12 +14,12 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
-import { createAuth } from './auth'
 import { getAuth } from './middleware/context'
 import { DEFAULT_TENANT_ID } from './config'
 import type { AnalyticsEngineDataset, AuthSession, AgentSession } from './types/bindings'
 import { isValidOrigin } from './security'
 import { rateLimiter } from './middleware/rate-limit'
+import { telemetry } from './middleware/telemetry'
 import { requireSession, requireAdminOrKey, resolveApiKeyOrSession } from './middleware/auth'
 
 // ── Route modules ─────────────────────────────────────────────────
@@ -44,6 +44,8 @@ import { developerPortal } from './routes/developer-portal'
 import { admin } from './routes/admin'
 import { webhooksApi } from './routes/webhooks-api'
 import { brandRouter } from './routes/brand'
+import { oauth } from './routes/oauth'
+import { assets } from './routes/assets'
 
 import { drizzle } from 'drizzle-orm/d1'
 import { eq as eqOp } from 'drizzle-orm'
@@ -88,64 +90,10 @@ app.onError((err, c) => {
 })
 
 // ── Observability & Telemetry ─────────────────────────────────────
-app.use('*', async (c, next) => {
-  const start = Date.now()
-  await next()
+app.use('*', telemetry())
 
-  if (c.env.ANALYTICS) {
-    const elapsed = Date.now() - start
-    const path = c.req.path
-    const tenantId = c.get('tenantId') || 'unknown'
-    const status = c.res.status
 
-    c.env.ANALYTICS.writeDataPoint({
-      blobs: [tenantId, path, c.req.method],
-      doubles: [elapsed, status],
-      indexes: [tenantId]
-    })
-  }
-})
 
-// ── Plan-based Rate Limiting ──────────────────────────────────────
-const PLAN_LIMITS: Record<string, number> = { free: 20, pro: 100, enterprise: 999999 }
-
-app.use('/api/v1/*', async (c, next) => {
-  const tenantId = c.get('tenantId')
-  if (!tenantId) return next()
-
-  try {
-    const minute = Math.floor(Date.now() / 60000)
-    const key = `rl:${tenantId}:${minute}`
-    const current = await c.env.CANAL_KV.get(key)
-    const count = current ? parseInt(current, 10) : 0
-
-    // Look up plan from org metadata
-    const org = await c.env.DB.prepare(
-      'SELECT metadata FROM organization WHERE id = ? LIMIT 1'
-    ).bind(tenantId).first<{ metadata: string }>()
-
-    const meta = org?.metadata ? JSON.parse(org.metadata) : {}
-    const plan = meta.plan || 'free'
-    const limit = PLAN_LIMITS[plan] || PLAN_LIMITS.free
-
-    if (count >= limit) {
-      return c.json({
-        error: 'Rate limit exceeded',
-        plan,
-        limit: `${limit} requests/minute`,
-        retryAfter: 60 - (Math.floor(Date.now() / 1000) % 60),
-      }, 429)
-    }
-
-    await c.env.CANAL_KV.put(key, String(count + 1), { expirationTtl: 120 })
-    c.header('X-RateLimit-Limit', String(limit))
-    c.header('X-RateLimit-Remaining', String(Math.max(0, limit - count - 1)))
-  } catch {
-    // Rate limit check failed, proceed anyway
-  }
-
-  return next()
-})
 
 // ── CORS & Security ───────────────────────────────────────────────
 app.use('/*', secureHeaders({
@@ -199,35 +147,8 @@ app.use('/*', cors({
   credentials: true,
 }))
 
-// ── OAuth Redirect (GET) ──────────────────────────────────────────
-app.get('/api/oauth/google', async (c) => {
-  const auth = getAuth(c)
-  const fakeReq = new Request(`${c.env.BETTER_AUTH_URL}/api/auth/sign-in/social`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ provider: 'google', callbackURL: c.req.query('callbackURL') || '/' }),
-  })
-  const response = await auth.handler(fakeReq)
-  const body = await response.json() as { url?: string }
-  if (!body.url) return c.redirect('/login?error=oauth_init_failed')
-
-  const googleUrl = new URL(body.url)
-  const stateParam = googleUrl.searchParams.get('state') || ''
-
-  const rawCookies = response.headers.get('set-cookie') || ''
-  const stateMatch = rawCookies.match(/(?:__Secure-)?better-auth\.state=([^;]+)/)
-  const stateCookieValue = stateMatch ? stateMatch[1] : ''
-
-  if (stateParam && stateCookieValue) {
-    await c.env.CANAL_KV.put(`oauth-state:${stateParam}`, stateCookieValue, { expirationTtl: 300 })
-  }
-
-  const redirectResponse = new Response(null, { status: 302, headers: { Location: body.url } })
-  for (const part of rawCookies.split(/,(?=\s*(?:__Secure-|better-auth\.))/)) {
-    if (part.trim()) redirectResponse.headers.append('Set-Cookie', part.trim())
-  }
-  return redirectResponse
-})
+// ── OAuth Redirect ────────────────────────────────────────────────
+app.route('/api/oauth', oauth)
 
 // ── Better Auth ───────────────────────────────────────────────────
 app.all('/api/auth/*', async (c) => {
@@ -375,8 +296,18 @@ app.post('/api/admin/seed-collections', requireAdminOrKey, async (c) => {
 
 // ── Mount: Public Compliance & Content ──────────────────────────
 app.get('/api/chatbot-config', async (c) => {
-  const db = drizzle(c.env.DB)
   const tenantId = c.req.query('tenant') || DEFAULT_TENANT_ID
+  const cacheKey = `chatbot:${tenantId}`
+
+  // KV cache first (300s TTL)
+  const cached = await c.env.CANAL_KV.get(cacheKey)
+  if (cached) {
+    c.header('Cache-Control', 'public, max-age=60')
+    c.header('X-Cache', 'HIT')
+    return c.json(JSON.parse(cached))
+  }
+
+  const db = drizzle(c.env.DB)
   const [config] = await db.select({
     bot_name: chatbot_config.bot_name,
     avatar_url: chatbot_config.avatar_url,
@@ -384,8 +315,15 @@ app.get('/api/chatbot-config', async (c) => {
     theme_color: chatbot_config.theme_color,
     enabled: chatbot_config.enabled,
   }).from(chatbot_config).where(eqOp(chatbot_config.tenant_id, tenantId)).limit(1)
+
+  const result = config || { bot_name: 'Gabi.OS', welcome_message: 'Olá! Como posso ajudar?', theme_color: '#00E5A0', enabled: 1 }
+
+  // Cache in KV (fire-and-forget, 5 min TTL)
+  c.executionCtx.waitUntil(c.env.CANAL_KV.put(cacheKey, JSON.stringify(result), { expirationTtl: 300 }))
+
   c.header('Cache-Control', 'public, max-age=60')
-  return c.json(config || { bot_name: 'Gabi.OS', welcome_message: 'Olá! Como posso ajudar?', theme_color: '#00E5A0', enabled: 1 })
+  c.header('X-Cache', 'MISS')
+  return c.json(result)
 })
 
 app.route('/api', complianceRoutes)
@@ -406,54 +344,8 @@ app.route('/api/admin', contentRoutes)
 // ── Mount: Chat RAG (public) ────────────────────────────────────
 app.route('/api/chat', chatRoutes)
 
-// ── Edge Image Delivery ─────────────────────────────────────────
-app.get('/media/:filename', async (c) => {
-  const filename = c.req.param('filename')
-  const imageUrl = new URL(`https://media.seucdn.com/${filename}`)
-  const width = c.req.query('w') || '1200'
-  const quality = c.req.query('q') || '85'
-
-  const requestInit = {
-    headers: c.req.raw.headers,
-    cf: {
-      image: {
-        width: parseInt(width),
-        format: 'auto',
-        quality: parseInt(quality),
-      }
-    }
-  } as unknown as RequestInit;
-
-  const imageRequest = new Request(imageUrl, requestInit)
-
-  try {
-    const res = await fetch(imageRequest)
-    const newHeaders = new Headers(res.headers)
-    newHeaders.set('Cache-Control', 'public, max-age=31536000, immutable')
-    return new Response(res.body, { status: res.status, headers: newHeaders })
-  } catch {
-    return c.json({ error: 'Falha no processamento de Imagem Edge' }, 500)
-  }
-})
-
-// ── OG Image Generator ──────────────────────────────────────────
-app.get('/api/og', (c) => {
-  const title = c.req.query('title') || 'Canal CMS'
-  const svg = `
-    <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
-      <rect width="1200" height="630" fill="111" />
-      <text x="600" y="315" fill="white" font-family="sans-serif" font-size="64" font-weight="900" text-anchor="middle" dominant-baseline="middle">
-        ${title}
-      </text>
-    </svg>
-  `
-  return new Response(svg, {
-    headers: {
-      'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'public, max-age=31536000, immutable'
-    }
-  })
-})
+// ── Mount: Assets (Edge Image Delivery + OG) ───────────────────
+app.route('/', assets)
 
 // ── SPA Fallback ────────────────────────────────────────────────
 app.notFound(async (c) => {

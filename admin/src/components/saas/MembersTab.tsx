@@ -9,7 +9,7 @@ function RoleBadge({ role }: { role: string }) {
 
 export function MembersTab({ org, isAdmin }: { org: any; isAdmin: boolean }) {
   const [inviteEmail, setInviteEmail] = React.useState("");
-  const [inviteRole, setInviteRole] = React.useState("member");
+  const [inviteRole, setInviteRole] = React.useState("editor");
   const [inviting, setInviting] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
@@ -24,7 +24,7 @@ export function MembersTab({ org, isAdmin }: { org: any; isAdmin: boolean }) {
     try {
       await organization.inviteMember({
         email: inviteEmail.trim(),
-        role: inviteRole as "admin" | "member" | "owner",
+        role: inviteRole as any,
         organizationId: org.id,
       });
       setSuccess(`Convite enviado para ${inviteEmail}`);
@@ -91,8 +91,9 @@ export function MembersTab({ org, isAdmin }: { org: any; isAdmin: boolean }) {
                   style={{ padding: "10px 14px", fontSize: 14 }}
                 >
                   <option value="admin">Admin</option>
-                  <option value="member">Editor</option>
-                  <option value="member">User</option>
+                  <option value="editor">Editor</option>
+                  <option value="viewer">Viewer</option>
+                  <option value="compliance-officer">Compliance Officer</option>
                 </select>
               </div>
             </div>
@@ -138,7 +139,9 @@ export function MembersTab({ org, isAdmin }: { org: any; isAdmin: boolean }) {
                           onChange={(e) => handleRoleChange(m.id, e.target.value)}
                         >
                           <option value="admin">Admin</option>
-                          <option value="member">Editor</option>
+                          <option value="editor">Editor</option>
+                          <option value="viewer">Viewer</option>
+                          <option value="compliance-officer">Compliance Officer</option>
                         </select>
                       ) : (
                         <RoleBadge role={m.role} />

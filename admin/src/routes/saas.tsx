@@ -29,17 +29,27 @@ export default function SaasSettingsPage() {
   const isSuperAdmin = isSuperAdminEmail(userEmail);
   const myMembership = activeOrg?.members?.find((m: Record<string, unknown>) => m.user?.email === userEmail || m.userId === session?.user?.id);
   const myRole = myMembership?.role || "member";
-  const isAdmin = isSuperAdmin || myRole === "owner" || myRole === "admin";
-  const isEditor = isAdmin || myRole === "member";
 
-  // Define visible tabs based on role
+  // RBAC: check permissions using org role
+  // Better Auth's default 'member' role maps to our 'viewer' role
+  const rbacRole = (myRole === 'member' ? 'viewer' : myRole) as 'admin' | 'owner' | 'editor' | 'viewer' | 'compliance-officer';
+  const canManageMembers = isSuperAdmin || authClient.organization.checkRolePermission({
+    permissions: { member: ['create'] },
+    role: rbacRole,
+  });
+  const canUpdateSettings = isSuperAdmin || authClient.organization.checkRolePermission({
+    permissions: { settings: ['update'] },
+    role: rbacRole,
+  });
+
+  // Define visible tabs based on RBAC permissions
   const tabs: { key: Tab; label: string; visible: boolean; icon: React.ReactNode }[] = [
     { key: "overview", label: "Visão Geral", visible: true, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg> },
-    { key: "members", label: "Membros", visible: isEditor, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
+    { key: "members", label: "Membros", visible: canManageMembers, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
     { key: "plan", label: "Plano & Billing", visible: true, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> },
     { key: "usage", label: "Uso", visible: true, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> },
-    { key: "api-keys", label: "Developer API", visible: isAdmin, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> },
-    { key: "settings", label: "Configurações", visible: isAdmin, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg> },
+    { key: "api-keys", label: "Developer API", visible: canUpdateSettings, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> },
+    { key: "settings", label: "Configurações", visible: canUpdateSettings, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg> },
   ];
 
   if (!activeOrg) {
@@ -91,11 +101,11 @@ export default function SaasSettingsPage() {
 
       <div>
         {activeTab === "overview" && <OverviewTab org={activeOrg} agents={agents} />}
-        {activeTab === "members" && isEditor && <MembersTab org={activeOrg} isAdmin={isAdmin} />}
+        {activeTab === "members" && canManageMembers && <MembersTab org={activeOrg} isAdmin={canUpdateSettings} />}
         {activeTab === "plan" && <PlanTab org={activeOrg} />}
         {activeTab === "usage" && <UsageTab org={activeOrg} />}
-        {activeTab === "api-keys" && isAdmin && <ApiKeysTab org={activeOrg} />}
-        {activeTab === "settings" && isAdmin && <SettingsTab org={activeOrg} />}
+        {activeTab === "api-keys" && canUpdateSettings && <ApiKeysTab org={activeOrg} />}
+        {activeTab === "settings" && canUpdateSettings && <SettingsTab org={activeOrg} />}
       </div>
     </div>
   );

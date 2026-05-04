@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router";
 import { useSession, signOut, authClient } from "../lib/auth-client";
 import { OrgSwitcher } from "../components/dashboard/OrgSwitcher";
 import { UserDropdown } from "../components/dashboard/UserDropdown";
 import { NAV, ADMIN_NAV, PAGE_META, isSuperAdminEmail } from "../components/dashboard/nav-config";
+import NotificationBell from "../components/dashboard/NotificationBell";
+
+const CommandPalette = lazy(() => import("../components/dashboard/CommandPalette"));
 
 function useSidebarCollapse() {
   const key = 'canal_sidebar_minimized';
@@ -109,10 +112,25 @@ export default function DashboardLayout() {
           {(isSysAdminMode ? ADMIN_NAV : NAV).map((group) => {
             if (group.adminOnly && !isSuperAdmin) return null;
             if (group.ownerOnly && !isSuperAdmin && myRole !== "owner") return null;
+            // RBAC: check group-level permission
+            if (group.requiredPermission && !isSuperAdmin) {
+              const groupAllowed = authClient.organization.checkRolePermission({
+                permissions: group.requiredPermission,
+                role: myRole,
+              });
+              if (!groupAllowed) return null;
+            }
 
             const visibleItems = group.items.filter((item) => {
               if (item.adminOnly && !isSuperAdmin) return false;
               if (item.ownerOnly && !isSuperAdmin && myRole !== "owner") return false;
+              // RBAC: check item-level permission
+              if (item.requiredPermission && !isSuperAdmin) {
+                return authClient.organization.checkRolePermission({
+                  permissions: item.requiredPermission,
+                  role: myRole,
+                });
+              }
               return true;
             });
             if (visibleItems.length === 0) return null;
@@ -175,24 +193,37 @@ export default function DashboardLayout() {
           <div className="flex flex-col">
              <h1 className="text-lg font-semibold text-white tracking-tight">{meta.title}</h1>
           </div>
-          <button
-            onClick={toggleTheme}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-zinc-400 hover:text-white hover:bg-muted/50 transition-colors"
-            title={theme === 'light' ? 'Tema Escuro' : 'Tema Claro'}
-            aria-label={theme === 'light' ? 'Alternar para tema escuro' : 'Alternar para tema claro'}
-          >
-             {theme === 'light' ? (
-               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-             ) : (
-               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-             )}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+              className="h-8 flex items-center gap-2 px-3 rounded-lg border border-border text-zinc-500 hover:text-zinc-300 hover:bg-muted/50 transition-colors text-xs"
+              title="Busca Global (⌘K)"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span className="hidden md:inline">Buscar...</span>
+              <kbd className="hidden md:inline text-[10px] bg-muted/50 px-1.5 py-0.5 rounded border border-border">⌘K</kbd>
+            </button>
+            <NotificationBell />
+            <button
+              onClick={toggleTheme}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-zinc-400 hover:text-white hover:bg-muted/50 transition-colors"
+              title={theme === 'light' ? 'Tema Escuro' : 'Tema Claro'}
+              aria-label={theme === 'light' ? 'Alternar para tema escuro' : 'Alternar para tema claro'}
+            >
+               {theme === 'light' ? (
+                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+               ) : (
+                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+               )}
+            </button>
+          </div>
         </header>
 
         {/* Viewport */}
         <div className="flex-1 overflow-y-auto custom-scrollbar relative z-0 flex flex-col items-center bg-background">
           <Outlet />
         </div>
+        <Suspense fallback={null}><CommandPalette /></Suspense>
       </main>
     </div>
   );

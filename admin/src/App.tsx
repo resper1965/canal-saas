@@ -22,6 +22,8 @@ const BrandHubPage = React.lazy(() => import("./routes/brand"));
 const OutboxPage = React.lazy(() => import("./routes/outbox"));
 const IntelligencePage = React.lazy(() => import("./routes/intelligence"));
 const ContentRoute = React.lazy(() => import("./routes/content"));
+const ActivityPage = React.lazy(() => import("./routes/activity"));
+const PipelinePage = React.lazy(() => import("./routes/pipeline"));
 function GlobalErrorBoundary() {
   const error = useRouteError() as Error;
   
@@ -73,6 +75,7 @@ const router = createBrowserRouter([
       { path: "brand", element: <BrandHubPage /> },
       { path: "outbox", element: <OutboxPage /> },
       { path: "intelligence", element: <IntelligencePage /> },
+      { path: "pipeline", element: <PipelinePage /> },
       // Legacy aliases (redirect to hubs)
       { path: "brandbook", element: <BrandHubPage /> },
       { path: "signatures", element: <BrandHubPage /> },
@@ -89,6 +92,7 @@ const router = createBrowserRouter([
       { path: "users", element: <UsersPage /> },
       { path: "organizations", element: <OrganizationsPage /> },
       { path: "compliance", element: <CompliancePage /> },
+      { path: "activity", element: <ActivityPage /> },
       { path: "chats", element: <ChatsHistoryPage /> },
       { path: "social-calendar", element: <SocialCalendarPage /> },
       { path: "emergency", element: <EmergencyPage /> },

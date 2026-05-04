@@ -1,25 +1,26 @@
 /**
  * Admin — Communications, Knowledge Base, Newsletters, Chat Analytics
+ * RBAC: requirePermission() for granular access control.
  */
 import { Hono } from 'hono'
 import { desc, eq } from 'drizzle-orm'
 import { safeParse, AddSubscriberSchema, SendNewsletterSchema, ForwardMessageSchema, CreateKnowledgeBaseSchema } from '../../schemas'
 import { DEFAULT_TENANT_ID } from '../../config'
 import type { AdminEnv } from './_shared'
-import { assertAdmin, getDb, schema } from './_shared'
+import { requirePermission, logAudit, getDb, schema } from './_shared'
 
 export const communicationsRouter = new Hono<AdminEnv>()
 
 // ── Newsletter Subscribers ──────────────────────────────────────
 communicationsRouter.get('/newsletter-subscribers', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { newsletter: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const db = getDb(c)
   const results = await db.select().from(schema.newsletter).orderBy(desc(schema.newsletter.created_at))
   return c.json(results)
 })
 
 communicationsRouter.post('/newsletter-subscribers', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { newsletter: ['create'] }))) return c.json({ error: 'Forbidden' }, 403)
   const parsed = safeParse(AddSubscriberSchema, await c.req.json())
   if (!parsed.success) return c.json({ error: parsed.error }, 400)
   const { email } = parsed.data
@@ -30,20 +31,22 @@ communicationsRouter.post('/newsletter-subscribers', async (c) => {
   if (existing.length) return c.json({ success: true, id: existing[0].id })
 
   const result = await c.env.DB.prepare('INSERT INTO newsletter (email) VALUES (?)').bind(email).run()
+  logAudit(c, 'create', 'newsletter-subscriber', String(result.meta?.last_row_id))
   return c.json({ success: true, id: result.meta?.last_row_id })
 })
 
 communicationsRouter.delete('/newsletter-subscribers/:id', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { newsletter: ['create'] }))) return c.json({ error: 'Forbidden' }, 403)
   const id = parseInt(c.req.param('id'), 10)
   const db = getDb(c)
   await db.delete(schema.newsletter).where(eq(schema.newsletter.id, id))
+  logAudit(c, 'delete', 'newsletter-subscriber', String(id))
   return c.json({ success: true })
 })
 
 // ── Send Newsletter ─────────────────────────────────────────────
 communicationsRouter.post('/newsletters/send', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { newsletter: ['send'] }))) return c.json({ error: 'Forbidden' }, 403)
 
   const parsed = safeParse(SendNewsletterSchema, await c.req.json())
   if (!parsed.success) return c.json({ error: parsed.error }, 400)
@@ -86,12 +89,13 @@ communicationsRouter.post('/newsletters/send', async (c) => {
     } catch (err) { console.error('[newsletter] batch send error:', err) }
   }
 
+  logAudit(c, 'send', 'newsletter', undefined, `subject: ${subject}, sent: ${sentCount}`)
   return c.json({ success: true, sent: sentCount })
 })
 
 // ── Unified Inbox ───────────────────────────────────────────────
 communicationsRouter.get('/communications', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const { results } = await c.env.DB.prepare(`
     SELECT 'form' as type, id, payload as data, source as title, source, status, created_at FROM forms
     UNION ALL
@@ -102,7 +106,7 @@ communicationsRouter.get('/communications', async (c) => {
 })
 
 communicationsRouter.post('/communications/forward', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { newsletter: ['send'] }))) return c.json({ error: 'Forbidden' }, 403)
   const session = c.get('session')
   const parsed = safeParse(ForwardMessageSchema, await c.req.json())
   if (!parsed.success) return c.json({ error: parsed.error }, 400)
@@ -135,12 +139,13 @@ communicationsRouter.post('/communications/forward', async (c) => {
     }),
   })
 
+  logAudit(c, 'forward', 'communication', String(messageId), `to: ${to}`)
   return c.json({ success: true })
 })
 
 // ── Knowledge Base (RAG) ────────────────────────────────────────
 communicationsRouter.get('/knowledge-base', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { automation: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const db = getDb(c)
   const results = await db.select().from(schema.knowledge_base)
@@ -150,7 +155,7 @@ communicationsRouter.get('/knowledge-base', async (c) => {
 })
 
 communicationsRouter.post('/knowledge-base', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { automation: ['configure'] }))) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const session = c.get('session')
   const parsed = safeParse(CreateKnowledgeBaseSchema, await c.req.json())
@@ -173,11 +178,12 @@ communicationsRouter.post('/knowledge-base', async (c) => {
     await c.env.QUEUE.send({ type: 'vectorize-document', payload: { id, tenantId, r2_key } })
   }
 
+  logAudit(c, 'create', 'knowledge-base', id, `title: ${title}`)
   return c.json({ success: true, id })
 })
 
 communicationsRouter.delete('/knowledge-base/:id', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { automation: ['configure'] }))) return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
   const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
   const db = getDb(c)
@@ -189,12 +195,13 @@ communicationsRouter.delete('/knowledge-base/:id', async (c) => {
   await c.env.MEDIA.delete(doc.r2_key)
   await db.delete(schema.knowledge_base).where(eq(schema.knowledge_base.id, id))
 
+  logAudit(c, 'delete', 'knowledge-base', id)
   return c.json({ success: true })
 })
 
 // ── Chat Sessions & Export ──────────────────────────────────────
 communicationsRouter.get('/chat-sessions', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
 
   const statsResult = await c.env.DB.prepare(`
@@ -214,7 +221,7 @@ communicationsRouter.get('/chat-sessions', async (c) => {
 })
 
 communicationsRouter.get('/chat-sessions/export', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['export'] }))) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = c.get('tenantId') || DEFAULT_TENANT_ID
 
   const rows = await c.env.DB.prepare(`
@@ -229,6 +236,7 @@ communicationsRouter.get('/chat-sessions/export', async (c) => {
     return `"${r.id}","${r.created_at}","${r.csat_score || ''}","${r.role}","${txt}"`
   }).join('\n')
 
+  logAudit(c, 'export', 'chat-sessions')
   return new Response(header + csv, {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',

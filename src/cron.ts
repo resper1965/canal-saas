@@ -80,6 +80,21 @@ export async function cronHandler(event: ScheduledEvent, env: Bindings) {
       }
     }
 
+    // ── Scheduled Entry Publishing ────────────────────────────────
+    // Publish entries with scheduled_at <= now
+    const scheduledEntries = await env.DB.prepare(
+      `SELECT id, tenant_id FROM entries WHERE status = 'scheduled' AND scheduled_at <= datetime('now') LIMIT 50`
+    ).all().catch(() => ({ results: [] }));
+
+    if (scheduledEntries.results && scheduledEntries.results.length > 0) {
+      console.log(`[Cron] Publishing ${scheduledEntries.results.length} scheduled entries.`);
+      for (const entry of scheduledEntries.results) {
+        await env.DB.prepare(
+          `UPDATE entries SET status = 'published', published_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+        ).bind(entry.id).run();
+      }
+    }
+
     // Social Posts Scheduler (Fase 5 - Epic 5.2)
     // Dispatch approved posts that are past their scheduled time
     const pendingPosts = await env.DB.prepare(
@@ -89,8 +104,6 @@ export async function cronHandler(event: ScheduledEvent, env: Bindings) {
     if (pendingPosts.results && pendingPosts.results.length > 0) {
       console.log(`[Cron] Dispatching ${pendingPosts.results.length} scheduled social posts.`);
       for (const post of pendingPosts.results) {
-        // Enqueue integration dispatch or process directly
-        // For MVP, mark as published.
         await env.DB.prepare(
           `UPDATE social_posts SET status = 'published', published_at = datetime('now') WHERE id = ?`
         ).bind(post.id).run();

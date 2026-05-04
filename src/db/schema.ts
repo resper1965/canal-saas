@@ -40,6 +40,7 @@ export const entries = sqliteTable('entries', {
   updated_by: text('updated_by'),
   governance_decision: text('governance_decision'),
   classification_reason: text('classification_reason'),
+  scheduled_at: text('scheduled_at'),
   published_at: text('published_at'),
   created_at: text('created_at'),
   updated_at: text('updated_at')
@@ -56,6 +57,14 @@ export const leads = sqliteTable('leads', {
   intent: text('intent'),
   urgency: text('urgency').default('media'),
   status: text('status').default('new'),
+  stage: text('stage').notNull().default('new'),
+  score: integer('score').default(0),
+  owner_id: text('owner_id'),
+  owner_name: text('owner_name'),
+  company: text('company'),
+  notes: text('notes'),
+  tags: text('tags').default('[]'),
+  last_activity: text('last_activity'),
   created_at: text('created_at').default('CURRENT_TIMESTAMP'),
   updated_at: text('updated_at')
 });
@@ -386,4 +395,42 @@ export const incidents = sqliteTable('incidents', {
   sla_deadline: text('sla_deadline'),
   created_at: text('created_at'),
   updated_at: text('updated_at'),
+});
+
+// ── Notifications ───────────────────────────────────────────────
+
+export const notifications = sqliteTable('notifications', {
+  id: text('id').primaryKey(),
+  tenant_id: text('tenant_id').notNull(),
+  user_id: text('user_id').notNull(),
+  type: text('type').notNull(),
+  title: text('title').notNull(),
+  body: text('body'),
+  action_url: text('action_url'),
+  read_at: text('read_at'),
+  created_at: text('created_at').notNull(),
+});
+
+// ── Entry Versions ──────────────────────────────────────────────
+
+export const entry_versions = sqliteTable('entry_versions', {
+  id: text('id').primaryKey(),
+  entry_id: text('entry_id').notNull(),
+  version: integer('version').notNull().default(1),
+  data: text('data').notNull(),
+  changed_by: text('changed_by'),
+  diff_summary: text('diff_summary'),
+  created_at: text('created_at').notNull(),
+});
+
+// ── Comments (Approval Workflow) ────────────────────────────────
+
+export const comments = sqliteTable('comments', {
+  id: text('id').primaryKey(),
+  entry_id: text('entry_id').notNull(),
+  user_id: text('user_id').notNull(),
+  user_name: text('user_name'),
+  body: text('body').notNull(),
+  resolved_at: text('resolved_at'),
+  created_at: text('created_at').notNull(),
 });

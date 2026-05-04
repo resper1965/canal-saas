@@ -11,6 +11,8 @@ import { settingsRouter } from './settings'
 import { leadsRouter } from './leads'
 import { communicationsRouter } from './communications'
 import { contentOpsRouter } from './content-ops'
+import { features } from './features'
+import { pipeline } from './pipeline'
 
 const admin = new Hono<AdminEnv>()
 
@@ -31,10 +33,16 @@ admin.route('/', settingsRouter)
 // Leads — /api/admin/applicants/*, /api/admin/leads/*, /api/admin/forms, /api/admin/chats, /api/admin/stats, /api/admin/activity
 admin.route('/', leadsRouter)
 
+// Lead Pipeline — /api/admin/pipeline/*
+admin.route('/', pipeline)
+
 // Communications — /api/admin/newsletter-*, /api/admin/newsletters/*, /api/admin/communications/*, /api/admin/knowledge-base/*, /api/admin/chat-sessions/*
 admin.route('/', communicationsRouter)
 
 // Content Ops — /api/admin/entries/:id/translate, /api/admin/entries/:id/social, /api/admin/social-posts/*, /api/admin/compliance/*
 admin.route('/', contentOpsRouter)
+
+// Platform Features — /api/admin/activity, /api/admin/notifications, /api/admin/entries/:id/versions, /api/admin/entries/:id/comments, /api/admin/search
+admin.route('/', features)
 
 export { admin }

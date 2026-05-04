@@ -440,10 +440,34 @@ entries.put('/collections/:slug/entries/:id', async (c) => {
   const now = new Date().toISOString()
   const publishedAt = status === 'published' ? (ex.published_at || now) : null
 
+  // Auto-version: save previous state before overwriting (fire-and-forget)
+  c.executionCtx.waitUntil((async () => {
+    try {
+      const versionCount = await c.env.DB.prepare(
+        'SELECT COUNT(*) as c FROM entry_versions WHERE entry_id = ?'
+      ).bind(entryId).first<{ c: number }>()
+      const nextVersion = (versionCount?.c || 0) + 1
+
+      // Compute diff summary
+      const changedFields = Object.keys(rawNewData).filter(k => {
+        return JSON.stringify(existingData[k]) !== JSON.stringify((rawNewData as Record<string, unknown>)[k])
+      })
+
+      await c.env.DB.prepare(
+        "INSERT INTO entry_versions (id, entry_id, version, data, changed_by, diff_summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      ).bind(
+        crypto.randomUUID(), entryId, nextVersion, ex.data,
+        session?.user?.id || null,
+        changedFields.length > 0 ? `Changed: ${changedFields.join(', ')}` : 'No diff',
+        now
+      ).run()
+    } catch (e) { console.error('[Versioning]', e) }
+  })())
+
   await c.env.DB.prepare(
-    `UPDATE entries SET data = ?, slug = ?, locale = ?, status = ?, published_at = ?, updated_at = ?
+    `UPDATE entries SET data = ?, slug = ?, locale = ?, status = ?, published_at = ?, updated_at = ?, updated_by = ?
      WHERE id = ? AND ${tSql}`
-  ).bind(JSON.stringify(mergedData), slug, locale, status, publishedAt, now, entryId, ...(tenantId ? [tenantId] : [])).run()
+  ).bind(JSON.stringify(mergedData), slug, locale, status, publishedAt, now, session?.user?.id || null, entryId, ...(tenantId ? [tenantId] : [])).run()
 
   // Auto-vectorize (fire-and-forget)
   if (status === 'published') {

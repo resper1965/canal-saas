@@ -2,18 +2,19 @@
  * Admin — Leads, Forms, Chats, Applicants, Stats, Activity
  *
  * ALL queries are tenant-scoped via getTenantId() to prevent cross-tenant data leakage.
+ * RBAC: uses requirePermission() from _shared for granular access control.
  */
 import { Hono } from 'hono'
 import { and, desc, eq } from 'drizzle-orm'
 import { UpdateStatusSchema } from '../../schemas'
 import type { AdminEnv } from './_shared'
-import { assertAdmin, getDb, getTenantId, schema } from './_shared'
+import { requirePermission, logAudit, getDb, getTenantId, schema } from './_shared'
 
 export const leadsRouter = new Hono<AdminEnv>()
 
 // ── Applicants ──────────────────────────────────────────────────
 leadsRouter.get('/applicants', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const db = getDb(c)
   const tenantId = getTenantId(c)
   const results = await db.select().from(schema.applicants)
@@ -23,29 +24,31 @@ leadsRouter.get('/applicants', async (c) => {
 })
 
 leadsRouter.patch('/applicants/:id', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['update'] }))) return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
   const { status } = UpdateStatusSchema.parse(await c.req.json())
   const db = getDb(c)
   const tenantId = getTenantId(c)
   await db.update(schema.applicants).set({ status })
     .where(and(eq(schema.applicants.id, id), eq(schema.applicants.tenant_id, tenantId)))
+  logAudit(c, 'update', 'applicant', id, `status → ${status}`)
   return c.json({ success: true })
 })
 
 leadsRouter.delete('/applicants/:id', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['update'] }))) return c.json({ error: 'Forbidden' }, 403)
   const id = c.req.param('id')
   const db = getDb(c)
   const tenantId = getTenantId(c)
   await db.delete(schema.applicants)
     .where(and(eq(schema.applicants.id, id), eq(schema.applicants.tenant_id, tenantId)))
+  logAudit(c, 'delete', 'applicant', id)
   return c.json({ success: true })
 })
 
 // ── Forms (tenant-scoped) ──────────────────────────────────────
 leadsRouter.get('/forms', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const db = getDb(c)
   const tenantId = getTenantId(c)
   const results = await db.select().from(schema.forms)
@@ -56,7 +59,7 @@ leadsRouter.get('/forms', async (c) => {
 
 // ── Chats (tenant-scoped) ──────────────────────────────────────
 leadsRouter.get('/chats', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const db = getDb(c)
   const tenantId = getTenantId(c)
   const results = await db.select().from(schema.chats)
@@ -67,7 +70,7 @@ leadsRouter.get('/chats', async (c) => {
 
 // ── Leads CRUD ──────────────────────────────────────────────────
 leadsRouter.get('/leads', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const status = c.req.query('status')
   const db = getDb(c)
   const tenantId = getTenantId(c)
@@ -82,7 +85,7 @@ leadsRouter.get('/leads', async (c) => {
 })
 
 leadsRouter.patch('/leads/:id', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['update'] }))) return c.json({ error: 'Forbidden' }, 403)
   const id = parseInt(c.req.param('id'), 10)
   const { status } = UpdateStatusSchema.parse(await c.req.json())
   const db = getDb(c)
@@ -90,22 +93,24 @@ leadsRouter.patch('/leads/:id', async (c) => {
   await db.update(schema.leads)
     .set({ status, updated_at: new Date().toISOString() })
     .where(and(eq(schema.leads.id, id), eq(schema.leads.tenant_id, tenantId)))
+  logAudit(c, 'update', 'lead', String(id), `status → ${status}`)
   return c.json({ success: true })
 })
 
 leadsRouter.delete('/leads/:id', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['update'] }))) return c.json({ error: 'Forbidden' }, 403)
   const id = parseInt(c.req.param('id'), 10)
   const db = getDb(c)
   const tenantId = getTenantId(c)
   await db.delete(schema.leads)
     .where(and(eq(schema.leads.id, id), eq(schema.leads.tenant_id, tenantId)))
+  logAudit(c, 'delete', 'lead', String(id))
   return c.json({ success: true })
 })
 
 // ── Dashboard Stats (tenant-scoped) ─────────────────────────────
 leadsRouter.get('/stats', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = getTenantId(c)
   const t = tenantId
 
@@ -140,7 +145,7 @@ leadsRouter.get('/stats', async (c) => {
 
 // ── Activity Feed (tenant-scoped) ───────────────────────────────
 leadsRouter.get('/activity', async (c) => {
-  if (!assertAdmin(c)) return c.json({ error: 'Forbidden' }, 403)
+  if (!(await requirePermission(c, { lead: ['read'] }))) return c.json({ error: 'Forbidden' }, 403)
   const tenantId = getTenantId(c)
   const { results } = await c.env.DB.prepare(`
     SELECT 'lead' as type, name as title, source, status, created_at FROM leads WHERE tenant_id = ?1
